@@ -22,6 +22,7 @@ from registro import views as registro_views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('principal.urls')),
+    path('consultorio/', include('consultorio.urls')),
     path('registro/', registro_views.registro, name='registro'),
     path('', include('django.contrib.auth.urls')),
 ]
