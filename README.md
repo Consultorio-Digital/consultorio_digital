@@ -8,15 +8,15 @@ Ingeniería Civil en Informática — Universidad de Valparaíso.
 
 | Documento | Descripción |
 |---|---|
-| [Informe Entrega 1](docs/informe_entrega_1.pdf) | Informe escrito: EDT, caso de negocio y casos de uso |
-| [Presentación Entrega 1](docs/presentacion_entrega_1.pdf) | Diapositivas de la exposición |
-| [EDT Entrega 1](docs/edt_entrega_1.pdf) | Estructura de Desglose del Trabajo |
+| [Informe Entrega 1](docs/entrega_1/informe_entrega_1.pdf) | Informe escrito: EDT, caso de negocio y casos de uso |
+| [Presentación Entrega 1](docs/entrega_1/presentacion_entrega_1.pdf) | Diapositivas de la exposición |
+| [EDT Entrega 1](docs/entrega_1/edt_entrega_1.pdf) | Estructura de Desglose del Trabajo |
 
 ## Entrega 2
 
 | Documento | Descripción |
 |---|---|
-| [Estimación UCP](docs/UseCasePoints_entrega2.xlsx) | Use Case Points — UCP = 217.87 → 1.743 h estimadas |
-| [Cronograma](docs/edt_entrega_2.xlsx) | Planificación: 8 fases, 41 tareas, 4 hitos, 576 h |
-| [Matriz de Riesgos](docs/Matriz_Riesgos_entrega2.docx) | 12 riesgos PESTLE con mitigaciones |
-| [Presentación Entrega 2](docs/presentacion_entrega_2.pptx) | Diapositivas: UCP, cronograma y riesgos |
+| [Estimación UCP](docs/entrega_2/UseCasePoints_entrega2.xlsx) | Use Case Points — UCP = 217.87 → 1.743 h estimadas |
+| [Cronograma](docs/entrega_2/edt_entrega_2.xlsx) | Planificación: 8 fases, 41 tareas, 4 hitos, 576 h |
+| [Matriz de Riesgos](docs/entrega_2/Matriz_Riesgos_entrega2.docx) | 12 riesgos PESTLE con mitigaciones |
+| [Presentación Entrega 2](docs/entrega_2/presentacion_entrega_2.pptx) | Diapositivas: UCP, cronograma y riesgos |
