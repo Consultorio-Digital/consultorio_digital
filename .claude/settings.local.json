@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir docs:*)",
+      "Bash(git mv:*)",
+      "Bash(osascript)",
+      "Bash(python3 -c \"import docx2pdf; print\\('ok'\\)\")",
+      "Bash(brew list:*)",
+      "Bash(osascript:*)",
+      "Bash(git rm:*)"
+    ]
+  }
+}
