@@ -1,117 +1,250 @@
 @startgantt
 
+<style>
+ganttDiagram {
+    task {
+        FontName Helvetica
+        FontSize 11
+        FontColor #1F2933
+        LineColor #1F2933
+        LineThickness 1
+        Margin 4
+    }
+    milestone {
+        FontName Helvetica
+        FontSize 11
+        FontStyle bold
+        FontColor #7A1F1F
+        BackGroundColor #C0392B
+        LineColor #7A1F1F
+    }
+    separator {
+        FontName Helvetica
+        FontSize 12
+        FontStyle bold
+        FontColor #102A43
+        BackGroundColor #D9E2EC
+        LineColor #BCCCDC
+        Padding 6
+        Margin 6
+    }
+    arrow {
+        FontName Helvetica
+        FontSize 10
+        FontColor #486581
+        LineColor #829AB1
+        LineStyle 4
+        LineThickness 1
+    }
+    timeline {
+        BackGroundColor #102A43
+        FontName Helvetica
+        FontColor White
+        FontSize 11
+        FontStyle bold
+    }
+    closed {
+        BackGroundColor #F5F7FA
+        FontColor #BCCCDC
+    }
+    today {
+        LineColor #C0392B
+        LineThickness 2
+        LineStyle 4
+    }
+    note {
+        FontName Helvetica
+        FontSize 10
+    }
+}
+</style>
+
 title Cronograma del Proyecto — Consultorio Digital
-caption ICI-513 Gestión de Proyectos Informáticos · Universidad de Valparaíso · Fecha base 10-03-2026
+caption ICI-513 Gestión de Proyectos Informáticos · Universidad de Valparaíso · Fecha base 10-03-2026 · Dedicación part-time ~2 h/día por responsable
 
 language es
-printscale weekly
+printscale daily
 
 project starts 2026-03-10
+today is 2026-05-05
 
-' Calendario laboral (lunes-viernes)
+' Calendario laboral (lunes a viernes)
 saturday are closed
 sunday are closed
 
--- Fase 1: Inicio / Planificación (24 h) --
 
-[1.1 Estudio de Factibilidad] starts 2026-03-10 and ends 2026-03-13
-[1.1 Estudio de Factibilidad] is 100% complete
-[1.1 Estudio de Factibilidad] is colored in #1F3864/White
-[1.2 Caso de Negocio] starts 2026-03-14 and ends 2026-03-17
-[1.2 Caso de Negocio] is 100% complete
-[1.2 Caso de Negocio] is colored in #1F3864/White
-[1.3 Planificación del Proyecto] starts 2026-03-18 and ends 2026-03-22
-[1.3 Planificación del Proyecto] is 100% complete
-[1.3 Planificación del Proyecto] is colored in #1F3864/White
+-- Fase 1 · Inicio y Planificación (24 h) --
 
--- Fase 2: Análisis de Requisitos (16 h) --
+[1.1 Estudio de Factibilidad\n<size:9><color:#486581>Alejandro Dinamarca · 8 h</color></size>] as [T1_1] starts 2026-03-10 and ends 2026-03-13
+[T1_1] is 100% complete
+[T1_1] is colored in #1F3864/White
 
-[2.1 Levantamiento de Requisitos] starts 2026-03-23 and ends 2026-03-29
-[2.1 Levantamiento de Requisitos] is 100% complete
-[2.1 Levantamiento de Requisitos] is colored in #2E75B6/White
-[2.2 Planificación de Seguridad] starts 2026-03-30 and ends 2026-04-03
-[2.2 Planificación de Seguridad] is 100% complete
-[2.2 Planificación de Seguridad] is colored in #2E75B6/White
-[Análisis de Requisitos Completado] happens 2026-04-06
+[1.2 Caso de Negocio\n<size:9><color:#486581>Alexandra Carrasco · 8 h</color></size>] as [T1_2] starts 2026-03-14 and ends 2026-03-17
+[T1_2] is 100% complete
+[T1_2] is colored in #1F3864/White
 
--- Fase 3: Diseño (32 h) --
+[1.3 Planificación del Proyecto\n<size:9><color:#486581>Ricardo Silva · 8 h</color></size>] as [T1_3] starts 2026-03-18 and ends 2026-03-22
+[T1_3] is 100% complete
+[T1_3] is colored in #1F3864/White
 
-[3.1 Diseño de Alto Nivel] starts 2026-04-07 and ends 2026-04-07
-[3.1 Diseño de Alto Nivel] is 100% complete
-[3.1 Diseño de Alto Nivel] is colored in #0075CA/White
-[3.2 Prueba de Concepto] starts 2026-04-07 and ends 2026-04-08
-[3.2 Prueba de Concepto] is 100% complete
-[3.2 Prueba de Concepto] is colored in #0075CA/White
-[3.3 Diseño Detallado] starts 2026-04-08 and ends 2026-04-08
-[3.3 Diseño Detallado] is 100% complete
-[3.3 Diseño Detallado] is colored in #0075CA/White
-[3.4 Especificación Técnica] starts 2026-04-09 and ends 2026-04-09
-[3.4 Especificación Técnica] is 100% complete
-[3.4 Especificación Técnica] is colored in #0075CA/White
-[Diseño Completado] happens 2026-04-09
+[T1_1] -> [T1_2]
+[T1_2] -> [T1_3]
 
--- Fase 4: Desarrollo (88 h) --
 
-[4.1 Creación de Ambientes] starts 2026-04-10 and ends 2026-04-16
-[4.1 Creación de Ambientes] is 100% complete
-[4.1 Creación de Ambientes] is colored in #006B75/White
-[4.2 Creación de Base de Datos] starts 2026-04-17 and ends 2026-04-20
-[4.2 Creación de Base de Datos] is 100% complete
-[4.2 Creación de Base de Datos] is colored in #006B75/White
-[4.3 Configuraciones Adicionales] starts 2026-04-21 and ends 2026-04-22
-[4.3 Configuraciones Adicionales] is 100% complete
-[4.3 Configuraciones Adicionales] is colored in #006B75/White
-[4.4 Maquetación de Pantallas] starts 2026-04-10 and ends 2026-04-14
-[4.4 Maquetación de Pantallas] is 100% complete
-[4.4 Maquetación de Pantallas] is colored in #006B75/White
-[4.5 Desarrollo Frontend (Templates)] starts 2026-04-23 and ends 2026-04-27
-[4.5 Desarrollo Frontend (Templates)] is 60% complete
-[4.5 Desarrollo Frontend (Templates)] is colored in #006B75/White
-[4.6 Desarrollo Backend] starts 2026-04-28 and ends 2026-05-01
-[4.6 Desarrollo Backend] is 50% complete
-[4.6 Desarrollo Backend] is colored in #006B75/White
-[4.7 Integración Frontend-Backend] starts 2026-05-02 and ends 2026-05-03
-[4.7 Integración Frontend-Backend] is 50% complete
-[4.7 Integración Frontend-Backend] is colored in #006B75/White
-[4.8 Planificación de la Calidad] starts 2026-05-03 and ends 2026-05-04
-[4.8 Planificación de la Calidad] is colored in #006B75/White
+-- Fase 2 · Análisis de Requisitos (16 h) --
 
--- Fase 5: Aseguramiento de Calidad (64 h) --
+[2.1 Levantamiento de Requisitos\n<size:9><color:#486581>Lucas Rojas · 8 h</color></size>] as [T2_1] starts 2026-03-23 and ends 2026-03-29
+[T2_1] is 100% complete
+[T2_1] is colored in #2E75B6/White
 
-[5.1 Prueba Unitaria] starts 2026-05-06 and ends 2026-05-11
-[5.1 Prueba Unitaria] is colored in #5319E7/White
-[5.2 Prueba Funcional] starts 2026-05-12 and ends 2026-05-15
-[5.2 Prueba Funcional] is colored in #5319E7/White
-[5.3 Prueba de Integración] starts 2026-05-16 and ends 2026-05-22
-[5.3 Prueba de Integración] is colored in #5319E7/White
-[5.4 Prueba de Regresión] starts 2026-05-23 and ends 2026-05-25
-[5.4 Prueba de Regresión] is colored in #5319E7/White
-[5.5 Prueba de Sistema] starts 2026-05-26 and ends 2026-05-27
-[5.5 Prueba de Sistema] is colored in #5319E7/White
-[5.6 Prueba de Aceptación de Usuario] starts 2026-05-28 and ends 2026-05-30
-[5.6 Prueba de Aceptación de Usuario] is colored in #5319E7/White
-[Sistema Aprobado para Despliegue] happens 2026-06-01
+[2.2 Planificación de Seguridad\n<size:9><color:#486581>Allan Gálvez · 8 h</color></size>] as [T2_2] starts 2026-03-30 and ends 2026-04-03
+[T2_2] is 100% complete
+[T2_2] is colored in #2E75B6/White
 
--- Fase 6: Implementación (32 h) --
+[H1 ◆ Análisis de Requisitos Aprobado] as [M_REQ] happens 2026-04-06
 
-[6.1 Despliegue en Producción] starts 2026-06-02 and ends 2026-06-04
-[6.1 Despliegue en Producción] is colored in #B60205/White
-[6.2 Capacitación a Usuarios] starts 2026-06-05 and ends 2026-06-10
-[6.2 Capacitación a Usuarios] is colored in #B60205/White
-[6.3 Soporte Post-Despliegue] starts 2026-06-11 and ends 2026-06-12
-[6.3 Soporte Post-Despliegue] is colored in #B60205/White
+[T1_3] -> [T2_1]
+[T2_1] -> [T2_2]
+[T2_2] -> [M_REQ]
 
--- Fase 7: Operaciones (16 h) --
 
-[7.1 Marcha Blanca] starts 2026-06-13 and ends 2026-06-16
-[7.1 Marcha Blanca] is colored in #E99695/White
-[7.2 Corrección de Incidencias] starts 2026-06-16 and ends 2026-06-18
-[7.2 Corrección de Incidencias] is colored in #E99695/White
+-- Fase 3 · Diseño (32 h) --
 
--- Fase 8: Cierre (16 h) --
+[3.1 Diseño de Alto Nivel\n<size:9><color:#486581>Ricardo Silva · 8 h</color></size>] as [T3_1] starts 2026-04-07 and ends 2026-04-07
+[T3_1] is 100% complete
+[T3_1] is colored in #4472C4/White
 
-[8.1 Documentación Final] starts 2026-06-20 and ends 2026-06-22
-[8.1 Documentación Final] is colored in #7F5000/White
-[Cierre Formal del Proyecto] happens 2026-06-24
+[3.2 Prueba de Concepto\n<size:9><color:#486581>Alexandra Carrasco · 8 h</color></size>] as [T3_2] starts 2026-04-07 and ends 2026-04-08
+[T3_2] is 100% complete
+[T3_2] is colored in #4472C4/White
+
+[3.3 Diseño Detallado\n<size:9><color:#486581>Lucas Rojas · 8 h</color></size>] as [T3_3] starts 2026-04-08 and ends 2026-04-08
+[T3_3] is 100% complete
+[T3_3] is colored in #4472C4/White
+
+[3.4 Especificación Técnica\n<size:9><color:#486581>Allan Gálvez · 8 h</color></size>] as [T3_4] starts 2026-04-09 and ends 2026-04-09
+[T3_4] is 100% complete
+[T3_4] is colored in #4472C4/White
+
+[H2 ◆ Diseño Aprobado] as [M_DIS] happens 2026-04-09
+
+[M_REQ] -> [T3_1]
+[T3_2] -> [T3_3]
+[T3_3] -> [T3_4]
+[T3_4] -> [M_DIS]
+
+
+-- Fase 4 · Desarrollo (88 h) --
+
+[4.1 Creación de Ambientes\n<size:9><color:#486581>Allan Gálvez · 16 h</color></size>] as [T4_1] starts 2026-04-10 and ends 2026-04-16
+[T4_1] is 100% complete
+[T4_1] is colored in #2E8540/White
+
+[4.2 Creación de Base de Datos\n<size:9><color:#486581>Alejandro Dinamarca · 8 h</color></size>] as [T4_2] starts 2026-04-17 and ends 2026-04-20
+[T4_2] is 100% complete
+[T4_2] is colored in #2E8540/White
+
+[4.3 Configuraciones Adicionales\n<size:9><color:#486581>Allan Gálvez · 8 h</color></size>] as [T4_3] starts 2026-04-21 and ends 2026-04-22
+[T4_3] is 100% complete
+[T4_3] is colored in #2E8540/White
+
+[4.4 Maquetación de Pantallas\n<size:9><color:#486581>Alexandra Carrasco · 8 h</color></size>] as [T4_4] starts 2026-04-10 and ends 2026-04-14
+[T4_4] is 100% complete
+[T4_4] is colored in #2E8540/White
+
+[4.5 Desarrollo Frontend (Templates)\n<size:9><color:#486581>Lucas Rojas · 8 h</color></size>] as [T4_5] starts 2026-04-23 and ends 2026-04-27
+[T4_5] is 60% complete
+[T4_5] is colored in #2E8540/White
+
+[4.6 Desarrollo Backend\n<size:9><color:#486581>Ricardo Silva · 24 h</color></size>] as [T4_6] starts 2026-04-28 and ends 2026-05-01
+[T4_6] is 50% complete
+[T4_6] is colored in #2E8540/White
+
+[4.7 Integración Frontend-Backend\n<size:9><color:#486581>Lucas Rojas · 8 h</color></size>] as [T4_7] starts 2026-05-02 and ends 2026-05-03
+[T4_7] is 50% complete
+[T4_7] is colored in #2E8540/White
+
+[4.8 Planificación de la Calidad\n<size:9><color:#486581>Alexandra Carrasco · 8 h</color></size>] as [T4_8] starts 2026-05-03 and ends 2026-05-04
+[T4_8] is 0% complete
+[T4_8] is colored in #2E8540/White
+
+[M_DIS] -> [T4_1]
+[M_DIS] -> [T4_4]
+[T4_1] -> [T4_2]
+[T4_2] -> [T4_3]
+[T4_4] -> [T4_5]
+[T4_5] -> [T4_6]
+[T4_6] -> [T4_7]
+[T4_7] -> [T4_8]
+
+
+-- Fase 5 · Aseguramiento de Calidad (64 h) --
+
+[5.1 Prueba Unitaria\n<size:9><color:#486581>Ricardo Silva · 8 h</color></size>] as [T5_1] starts 2026-05-06 and ends 2026-05-11
+[T5_1] is colored in #6F42C1/White
+
+[5.2 Prueba Funcional\n<size:9><color:#486581>Alexandra Carrasco · 8 h</color></size>] as [T5_2] starts 2026-05-12 and ends 2026-05-15
+[T5_2] is colored in #6F42C1/White
+
+[5.3 Prueba de Integración\n<size:9><color:#486581>Alejandro Dinamarca · 24 h</color></size>] as [T5_3] starts 2026-05-16 and ends 2026-05-22
+[T5_3] is colored in #6F42C1/White
+
+[5.4 Prueba de Regresión\n<size:9><color:#486581>Lucas Rojas · 8 h</color></size>] as [T5_4] starts 2026-05-23 and ends 2026-05-25
+[T5_4] is colored in #6F42C1/White
+
+[5.5 Prueba de Sistema\n<size:9><color:#486581>Allan Gálvez · 8 h</color></size>] as [T5_5] starts 2026-05-26 and ends 2026-05-27
+[T5_5] is colored in #6F42C1/White
+
+[5.6 Prueba de Aceptación de Usuario\n<size:9><color:#486581>Ricardo Silva · 8 h</color></size>] as [T5_6] starts 2026-05-28 and ends 2026-05-30
+[T5_6] is colored in #6F42C1/White
+
+[H3 ◆ Sistema Aprobado para Despliegue] as [M_QA] happens 2026-06-01
+
+[T4_8] -> [T5_1]
+[T5_1] -> [T5_2]
+[T5_2] -> [T5_3]
+[T5_3] -> [T5_4]
+[T5_4] -> [T5_5]
+[T5_5] -> [T5_6]
+[T5_6] -> [M_QA]
+
+
+-- Fase 6 · Implementación (32 h) --
+
+[6.1 Despliegue en Producción\n<size:9><color:#486581>Alejandro Dinamarca · 8 h</color></size>] as [T6_1] starts 2026-06-02 and ends 2026-06-04
+[T6_1] is colored in #D45E1F/White
+
+[6.2 Capacitación a Usuarios\n<size:9><color:#486581>Alexandra Carrasco · 16 h</color></size>] as [T6_2] starts 2026-06-05 and ends 2026-06-10
+[T6_2] is colored in #D45E1F/White
+
+[6.3 Soporte Post-Despliegue\n<size:9><color:#486581>Lucas Rojas · 8 h</color></size>] as [T6_3] starts 2026-06-11 and ends 2026-06-12
+[T6_3] is colored in #D45E1F/White
+
+[M_QA] -> [T6_1]
+[T6_1] -> [T6_2]
+[T6_2] -> [T6_3]
+
+
+-- Fase 7 · Operaciones (16 h) --
+
+[7.1 Marcha Blanca\n<size:9><color:#486581>Allan Gálvez · 8 h</color></size>] as [T7_1] starts 2026-06-13 and ends 2026-06-16
+[T7_1] is colored in #C99A2E/White
+
+[7.2 Corrección de Incidencias\n<size:9><color:#486581>Ricardo Silva · 8 h</color></size>] as [T7_2] starts 2026-06-16 and ends 2026-06-18
+[T7_2] is colored in #C99A2E/White
+
+[T6_3] -> [T7_1]
+[T7_1] -> [T7_2]
+
+
+-- Fase 8 · Cierre (16 h) --
+
+[8.1 Documentación Final\n<size:9><color:#486581>Ricardo Silva · 16 h</color></size>] as [T8_1] starts 2026-06-20 and ends 2026-06-22
+[T8_1] is colored in #7A1F1F/White
+
+[H4 ◆ Cierre Formal del Proyecto] as [M_CLOSE] happens 2026-06-24
+
+[T7_2] -> [T8_1]
+[T8_1] -> [M_CLOSE]
 
 @endgantt
