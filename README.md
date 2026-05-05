@@ -18,5 +18,8 @@ Ingeniería Civil en Informática — Universidad de Valparaíso.
 |---|---|
 | [Estimación UCP](docs/entrega_2/UseCasePoints_entrega2.xlsx) | Use Case Points — UCP = 217.87 → 1.743 h estimadas |
 | [Cronograma](docs/entrega_2/edt_entrega_2.xlsx) | Planificación: 8 fases, 41 tareas, 4 hitos, 576 h |
+| [Carta Gantt](docs/entrega_2/gantt_entrega_2.svg) | Carta Gantt del cronograma ([SVG](docs/entrega_2/gantt_entrega_2.svg) · [PNG](docs/entrega_2/gantt_entrega_2.png) · [fuente PlantUML](docs/entrega_2/gantt_entrega_2.puml)) |
 | [Matriz de Riesgos](docs/entrega_2/Matriz_Riesgos_entrega2.docx) | 12 riesgos PESTLE con mitigaciones |
 | [Presentación Entrega 2](docs/entrega_2/presentacion_entrega_2.pptx) | Diapositivas: UCP, cronograma y riesgos |
+
+![Carta Gantt — Consultorio Digital](docs/entrega_2/gantt_entrega_2.svg)
