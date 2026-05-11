@@ -250,3 +250,88 @@ class DisponibilidadModelTests(TestCase):
             fechas_horas,
             sorted(fechas_horas, key=lambda x: (x[0], x[1]))
         )
+
+
+# ---------------------------------------------------------------------------
+# ConsultorioViewAuthTests — vistas que requieren autenticacion
+# ---------------------------------------------------------------------------
+
+class ConsultorioViewAuthTests(TestCase):
+    """Verifica que las vistas protegidas redirigen a login si no hay sesion."""
+
+    def test_seleccionar_region_redirige_sin_login(self):
+        response = self.client.get("/consultorio/")
+        self.assertRedirects(
+            response, "/login/?next=/consultorio/",
+            fetch_redirect_response=False,
+        )
+
+    def test_mis_horas_redirige_sin_login(self):
+        response = self.client.get("/consultorio/mis_horas")
+        self.assertRedirects(
+            response, "/login/?next=/consultorio/mis_horas",
+            fetch_redirect_response=False,
+        )
+
+    def test_cancelar_hora_redirige_sin_login(self):
+        response = self.client.get("/consultorio/cancelar_hora")
+        self.assertRedirects(
+            response, "/login/?next=/consultorio/cancelar_hora",
+            fetch_redirect_response=False,
+        )
+
+    def test_historial_paciente_redirige_sin_login(self):
+        response = self.client.get("/consultorio/historial_paciente/")
+        self.assertRedirects(
+            response, "/login/?next=/consultorio/historial_paciente/",
+            fetch_redirect_response=False,
+        )
+
+
+class ConsultorioViewGetTests(TestCase):
+    """Verifica respuestas GET para usuarios autenticados."""
+
+    def setUp(self):
+        from django.contrib.auth.models import User
+        self.user = User.objects.create_user(
+            username="111111118",
+            password="clave_prueba_2026",
+        )
+        self.client.login(username="111111118", password="clave_prueba_2026")
+
+    def test_seleccionar_region_retorna_200(self):
+        response = self.client.get("/consultorio/")
+        self.assertEqual(response.status_code, 200)
+
+    def test_mis_horas_retorna_200(self):
+        response = self.client.get("/consultorio/mis_horas")
+        self.assertEqual(response.status_code, 200)
+
+    def test_cancelar_hora_retorna_200(self):
+        response = self.client.get("/consultorio/cancelar_hora")
+        self.assertEqual(response.status_code, 200)
+
+    def test_obtener_comunas_sin_region_retorna_lista_vacia(self):
+        response = self.client.get("/consultorio/obtener_comunas/99/")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), [])
+
+    def test_obtener_consultorios_sin_resultados_retorna_lista_vacia(self):
+        response = self.client.get("/consultorio/obtener_consultorios/XXXXX/")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), [])
+
+    def test_obtener_doctores_sin_consultorio_retorna_lista_vacia(self):
+        response = self.client.get("/consultorio/obtener_doctores/")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), [])
+
+    def test_obtener_fechas_sin_profesional_retorna_lista_vacia(self):
+        response = self.client.get("/consultorio/obtener_fechas/")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), [])
+
+    def test_obtener_slots_sin_parametros_retorna_lista_vacia(self):
+        response = self.client.get("/consultorio/obtener_slots/")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), [])
