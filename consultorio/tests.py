@@ -335,3 +335,260 @@ class ConsultorioViewGetTests(TestCase):
         response = self.client.get("/consultorio/obtener_slots/")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(), [])
+
+
+# ---------------------------------------------------------------------------
+# FlujoReservaFuncionalTests — EDT 5.2 Prueba Funcional
+# ---------------------------------------------------------------------------
+
+class FlujoReservaFuncionalTests(TestCase):
+    """Pruebas funcionales del flujo completo de reserva de hora medica."""
+
+    def setUp(self):
+        from django.contrib.auth.models import User
+
+        self.user = User.objects.create_user(
+            username   = "333333334",
+            password   = "clave_prueba_2026",
+            first_name = "Maria",
+            last_name  = "Silva",
+            email      = "maria@test.cl",
+        )
+        self.consultorio = _crear_consultorio(objectid=200, c_com="05101")
+        self.profesional = _crear_profesional(
+            rut="444444448", consultorio=self.consultorio
+        )
+        Disponibilidad.objects.create(
+            profesional = self.profesional,
+            fecha       = date(2026, 7, 1),
+            hora_inicio = time(9, 0),
+            hora_fin    = time(11, 0),
+        )
+        self.client.login(username="333333334", password="clave_prueba_2026")
+
+    # — Endpoints AJAX ——————————————————————————————————————————————————————
+
+    def test_obtener_comunas_retorna_com_del_consultorio(self):
+        response = self.client.get("/consultorio/obtener_comunas/5/")
+        self.assertEqual(response.status_code, 200)
+        comunas = response.json()
+        self.assertTrue(any(c["c_com"] == "05101" for c in comunas))
+
+    def test_obtener_consultorios_filtra_por_comuna(self):
+        response = self.client.get("/consultorio/obtener_consultorios/05101/")
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(len(data), 1)
+        self.assertEqual(data[0]["nombre"], "CESFAM Test")
+
+    def test_obtener_doctores_retorna_profesional_del_consultorio(self):
+        response = self.client.get(
+            f"/consultorio/obtener_doctores/?consultorio_id={self.consultorio.objectid}"
+        )
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(len(data), 1)
+        self.assertIn("Carlos", data[0]["nombre"])
+        self.assertEqual(data[0]["especialidad"], "Medicina General")
+
+    def test_obtener_fechas_retorna_dias_con_disponibilidad(self):
+        response = self.client.get(
+            f"/consultorio/obtener_fechas/?profesional_id={self.profesional.id}"
+        )
+        self.assertEqual(response.status_code, 200)
+        fechas = response.json()
+        self.assertIn("2026-07-01", fechas)
+
+    def test_obtener_slots_genera_bloques_de_30_minutos(self):
+        response = self.client.get(
+            f"/consultorio/obtener_slots/"
+            f"?profesional_id={self.profesional.id}&fecha=2026-07-01"
+        )
+        self.assertEqual(response.status_code, 200)
+        slots  = response.json()
+        # 09:00 a 11:00 = 4 slots de 30 min
+        self.assertEqual(len(slots), 4)
+        labels = [s["label"] for s in slots]
+        self.assertIn("09:00", labels)
+        self.assertIn("09:30", labels)
+        self.assertIn("10:00", labels)
+        self.assertIn("10:30", labels)
+
+    # — Flujo de reserva ————————————————————————————————————————————————————
+
+    def test_post_reserva_crea_registro_y_redirige_al_inicio(self):
+        response = self.client.post("/consultorio/", {
+            "consultorio"  : self.consultorio.objectid,
+            "profesional_id": self.profesional.id,
+            "motivo"       : "Control de rutina",
+            "slot"         : "2026-07-01 09:00",
+        })
+        self.assertRedirects(
+            response, "/",
+            fetch_redirect_response=False,
+        )
+        self.assertTrue(
+            Reserva.objects.filter(motivo="Control de rutina").exists()
+        )
+
+    def test_reserva_queda_en_estado_pendiente_por_defecto(self):
+        self.client.post("/consultorio/", {
+            "consultorio"  : self.consultorio.objectid,
+            "profesional_id": self.profesional.id,
+            "motivo"       : "Primera consulta",
+            "slot"         : "2026-07-01 09:30",
+        })
+        reserva = Reserva.objects.get(motivo="Primera consulta")
+        self.assertEqual(reserva.estado, "pendiente")
+
+    def test_slot_ocupado_no_genera_reserva_duplicada(self):
+        from django.utils import timezone
+        import datetime
+
+        slot_dt = timezone.make_aware(datetime.datetime(2026, 7, 1, 10, 0))
+        # Crear reserva preexistente para ese slot
+        usuario_otro = _crear_usuario(
+            rut="555555557", nombre="Luis", apellido="Vega", correo="luis@t.cl"
+        )
+        paciente_otro = Paciente.objects.create(
+            usuario=usuario_otro, ingreso=date(2026, 1, 1)
+        )
+        Reserva.objects.create(
+            consultorio  = self.consultorio,
+            paciente     = paciente_otro,
+            profesional  = self.profesional,
+            fecha_reserva= slot_dt,
+            motivo       = "Reserva previa",
+        )
+        # Segundo intento de reserva para el mismo slot
+        self.client.post("/consultorio/", {
+            "consultorio"  : self.consultorio.objectid,
+            "profesional_id": self.profesional.id,
+            "motivo"       : "Intento duplicado",
+            "slot"         : "2026-07-01 10:00",
+        })
+        count = Reserva.objects.filter(
+            profesional  = self.profesional,
+            fecha_reserva= slot_dt,
+        ).exclude(estado="cancelada").count()
+        self.assertEqual(count, 1)
+
+    def test_slot_ocupado_guarda_ya_tomado_en_sesion(self):
+        from django.utils import timezone
+        import datetime
+
+        slot_dt = timezone.make_aware(datetime.datetime(2026, 7, 1, 10, 30))
+        usuario_otro = _crear_usuario(
+            rut="666666660", nombre="Rosa", apellido="Diaz", correo="rosa@t.cl"
+        )
+        paciente_otro = Paciente.objects.create(
+            usuario=usuario_otro, ingreso=date(2026, 1, 1)
+        )
+        Reserva.objects.create(
+            consultorio  = self.consultorio,
+            paciente     = paciente_otro,
+            profesional  = self.profesional,
+            fecha_reserva= slot_dt,
+            motivo       = "Reserva ocupada",
+        )
+        self.client.post("/consultorio/", {
+            "consultorio"  : self.consultorio.objectid,
+            "profesional_id": self.profesional.id,
+            "motivo"       : "Intento sobre slot ocupado",
+            "slot"         : "2026-07-01 10:30",
+        })
+        sesion = self.client.session.get("reserva_confirmada", {})
+        self.assertTrue(sesion.get("ya_tomado"))
+
+    def test_slot_libre_guarda_ya_tomado_false_en_sesion(self):
+        self.client.post("/consultorio/", {
+            "consultorio"  : self.consultorio.objectid,
+            "profesional_id": self.profesional.id,
+            "motivo"       : "Cita nueva sin conflicto",
+            "slot"         : "2026-07-01 09:00",
+        })
+        sesion = self.client.session.get("reserva_confirmada", {})
+        self.assertFalse(sesion.get("ya_tomado"))
+
+
+# ---------------------------------------------------------------------------
+# CancelacionFuncionalTests
+# ---------------------------------------------------------------------------
+
+class CancelacionFuncionalTests(TestCase):
+    """Pruebas funcionales del flujo de cancelacion de hora medica."""
+
+    def setUp(self):
+        from django.contrib.auth.models import User
+        from django.utils import timezone
+
+        self.user = User.objects.create_user(
+            username="777777771",
+            password="clave_prueba_2026",
+        )
+        self.consultorio = _crear_consultorio(objectid=300, c_com="05101")
+        self.profesional = _crear_profesional(
+            rut="888888886", consultorio=self.consultorio
+        )
+        usuario_paciente = _crear_usuario(
+            rut="777777771", nombre="Pedro", apellido="Mora", correo="pedro@t.cl"
+        )
+        self.paciente = Paciente.objects.create(
+            usuario=usuario_paciente, ingreso=date(2026, 1, 1)
+        )
+        self.reserva = Reserva.objects.create(
+            consultorio  = self.consultorio,
+            paciente     = self.paciente,
+            profesional  = self.profesional,
+            fecha_reserva= timezone.now(),
+            motivo       = "Cita a cancelar",
+            estado       = "confirmada",
+        )
+        self.client.login(username="777777771", password="clave_prueba_2026")
+
+    def test_get_cancelar_hora_retorna_200_con_reservas(self):
+        response = self.client.get("/consultorio/cancelar_hora")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("reservas_activas", response.context)
+
+    def test_seleccionar_reserva_guarda_codigo_en_sesion(self):
+        self.client.post("/consultorio/cancelar_hora", {
+            "action"    : "seleccionar",
+            "reserva_id": self.reserva.id,
+        })
+        sesion = self.client.session.get("cancelacion", {})
+        self.assertEqual(str(sesion.get("reserva_id")), str(self.reserva.id))
+        self.assertRegex(sesion.get("codigo", ""), r"^\d{6}$")
+
+    def test_cancelacion_con_codigo_correcto_cambia_estado(self):
+        # Paso 1: seleccionar
+        self.client.post("/consultorio/cancelar_hora", {
+            "action"    : "seleccionar",
+            "reserva_id": self.reserva.id,
+        })
+        codigo = self.client.session["cancelacion"]["codigo"]
+
+        # Paso 2: confirmar con codigo correcto
+        self.client.post("/consultorio/cancelar_hora", {
+            "action"             : "confirmar",
+            "confirmar_reserva_id": self.reserva.id,
+            "codigo"             : codigo,
+            "motivo_cancelacion" : "Ya no puedo asistir",
+        })
+        self.reserva.refresh_from_db()
+        self.assertEqual(self.reserva.estado, "cancelada")
+        self.assertEqual(self.reserva.motivo_cancelacion, "Ya no puedo asistir")
+
+    def test_cancelacion_con_codigo_incorrecto_no_cancela(self):
+        self.client.post("/consultorio/cancelar_hora", {
+            "action"    : "seleccionar",
+            "reserva_id": self.reserva.id,
+        })
+        self.client.post("/consultorio/cancelar_hora", {
+            "action"             : "confirmar",
+            "confirmar_reserva_id": self.reserva.id,
+            "codigo"             : "000000",
+            "motivo_cancelacion" : "",
+        })
+        self.reserva.refresh_from_db()
+        self.assertNotEqual(self.reserva.estado, "cancelada")
