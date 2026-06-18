@@ -1,13 +1,24 @@
+/* ── Paleta institucional (estilo MINSAL/FONASA) ──
+   Primario:  #1a3a5c (azul oscuro institucional)
+   Hover:     #0d2340                                   */
+:root {
+  --cd-primary: #1a3a5c;
+  --cd-primary-hover: #0d2340;
+  /* Que badges/utilidades .text-bg-primary y .bg-primary sigan el tono */
+  --bs-primary: #1a3a5c;
+  --bs-primary-rgb: 26, 58, 92;
+}
+
 /* ── Color principal del navbar ── */
 .navbar-cd {
-  background-color: #2B7FFF;
+  background-color: var(--cd-primary);
 }
 
 .text-cd-accent {
   color: #fff;
 }
 
-/* ── Hover en links ── */
+/* ── Hover en links del navbar ── */
 .navbar-cd .nav-link:hover,
 .navbar-cd .nav-link:focus {
   color: rgba(255, 255, 255, 0.70) !important;
@@ -16,4 +27,152 @@
 /* ── Toggler sin sombra de foco ── */
 .navbar-cd .navbar-toggler:focus {
   box-shadow: none;
+}
+
+/* ── Botones primarios institucionales ── */
+.btn-primary {
+  background-color: var(--cd-primary);
+  border-color: var(--cd-primary);
+}
+
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:active {
+  background-color: var(--cd-primary-hover) !important;
+  border-color: var(--cd-primary-hover) !important;
+}
+
+/* ── Botones outline institucionales ── */
+.btn-outline-primary {
+  color: var(--cd-primary);
+  border-color: var(--cd-primary);
+}
+
+.btn-outline-primary:hover,
+.btn-outline-primary:focus,
+.btn-outline-primary:active,
+.btn-outline-primary.show {
+  background-color: var(--cd-primary) !important;
+  border-color: var(--cd-primary) !important;
+  color: #fff !important;
+}
+
+/* ── Links de acción (excluye navbar y botones) ── */
+a:not(.nav-link):not(.navbar-brand):not(.btn):not(.dropdown-item) {
+  color: var(--cd-primary);
+}
+
+a:not(.nav-link):not(.navbar-brand):not(.btn):not(.dropdown-item):hover {
+  color: var(--cd-primary-hover);
+}
+
+/* ── Cards y contenedores: fondo blanco, sombra sutil y acento superior ── */
+.card {
+  background-color: #fff;
+  border: none;
+  border-top: 3px solid var(--cd-primary);
+  box-shadow: 0 2px 10px rgba(26, 58, 92, 0.08);
+}
+
+/* Transiciones suaves globales */
+*, *::before, *::after {
+  transition: background-color 0.15s ease,
+              color 0.15s ease,
+              border-color 0.15s ease,
+              box-shadow 0.15s ease,
+              opacity 0.15s ease;
+}
+
+/* Botones con transform suave */
+.btn {
+  transition: all 0.18s ease !important;
+}
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(26,58,92,0.15);
+}
+.btn:active {
+  transform: translateY(0);
+}
+
+/* Cards con hover suave */
+.card {
+  transition: box-shadow 0.2s ease, transform 0.2s ease !important;
+}
+.card:hover {
+  box-shadow: 0 4px 16px rgba(26,58,92,0.12) !important;
+}
+
+/* Accordion más suave (ya lo maneja Bootstrap,
+   pero forzamos la duración) */
+.accordion-collapse {
+  transition: all 0.25s ease !important;
+}
+
+/* ── Botones más finos ── */
+.btn {
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 6px 16px;
+  border-radius: 6px;
+}
+.btn-sm {
+  font-size: 0.8rem;
+  padding: 4px 10px;
+  border-radius: 5px;
+}
+
+/* Quita el transform en tablas — se ve raro en botones pequeños */
+.table .btn:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+/* ── Tipografía más consistente ── */
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-size: 0.9375rem;
+  color: #1e2d3d;
+}
+
+h1, h2, h3, h4, h5 {
+  font-weight: 600;
+  color: #1a3a5c;
+}
+
+.table {
+  font-size: 0.875rem;
+}
+
+.table thead th {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #5a7a96;
+  border-bottom: 2px solid #e0e7ef;
+}
+
+/* ── Navbar más refinado ── */
+.navbar {
+  padding: 0.6rem 1.5rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+}
+
+.navbar-brand {
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+
+.nav-link {
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 0.5rem 0.9rem !important;
+  border-radius: 6px;
+  transition: background-color 0.15s ease;
+}
+
+.nav-link:hover {
+  background-color: rgba(255,255,255,0.15);
 }

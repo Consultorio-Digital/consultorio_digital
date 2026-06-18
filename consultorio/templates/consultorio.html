@@ -128,6 +128,34 @@
 
   </div>
 </div>
+
+{# ── Modal: Resumen de la cita (confirmación) ── #}
+<div class="modal fade" id="modalResumenCita" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-calendar-check me-2"></i>Resumen de tu cita</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <p class="text-muted">Revisa que todo esté correcto antes de agendar:</p>
+        <ul class="list-unstyled mb-0">
+          <li class="mb-2"><i class="bi bi-building me-2 text-muted"></i><span id="rc-consultorio"></span></li>
+          <li class="mb-2"><i class="bi bi-person me-2 text-muted"></i><span id="rc-doctor"></span></li>
+          <li class="mb-2"><i class="bi bi-calendar me-2 text-muted"></i><span id="rc-fecha"></span></li>
+          <li class="mb-2"><i class="bi bi-clock me-2 text-muted"></i><span id="rc-horario"></span></li>
+          <li class="mb-2"><i class="bi bi-clipboard me-2 text-muted"></i><span id="rc-motivo"></span></li>
+        </ul>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Volver</button>
+        <button type="button" class="btn btn-primary" id="rc-confirmar">
+          <i class="bi bi-check-lg me-1"></i>Sí, agendar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
@@ -282,6 +310,32 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   slotSel.addEventListener('change', checkSubmit);
+
+  // ── Modal de confirmación antes de agendar ──
+  const frmReserva = document.getElementById('frm-reserva');
+  const modalResumen = document.getElementById('modalResumenCita');
+  const motivoInput = document.getElementById('motivo');
+
+  function textoSel(sel) {
+    return sel.selectedOptions.length ? sel.selectedOptions[0].text.trim() : '';
+  }
+
+  if (frmReserva && modalResumen) {
+    frmReserva.addEventListener('submit', function (e) {
+      e.preventDefault();  // no enviar todavía: mostrar resumen
+      document.getElementById('rc-consultorio').textContent = textoSel(consultorioSel);
+      document.getElementById('rc-doctor').textContent      = textoSel(doctorSel);
+      document.getElementById('rc-fecha').textContent       = textoSel(fechaSel);
+      document.getElementById('rc-horario').textContent     = textoSel(slotSel);
+      document.getElementById('rc-motivo').textContent      = motivoInput.value.trim() || '(sin motivo)';
+      bootstrap.Modal.getOrCreateInstance(modalResumen).show();
+    });
+
+    document.getElementById('rc-confirmar').addEventListener('click', function () {
+      bootstrap.Modal.getOrCreateInstance(modalResumen).hide();
+      frmReserva.submit();  // submit real, sin pasar por el listener
+    });
+  }
 });
 </script>
 {% endblock %}

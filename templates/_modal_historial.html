@@ -1,0 +1,105 @@
+{% comment %}
+Modal de historial del paciente + JS (autocontenido, listener delegado).
+Requiere botones con class="paciente-link" data-paciente-id="..." data-consultorio-id="...".
+Usa el endpoint /consultorio/historial_paciente/?paciente_id=&consultorio_id=
+Incluir una sola vez por página (panel_doctor.html / panel_admin.html).
+{% endcomment %}
+<div class="modal fade" id="modalHistorialPaciente" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="bi bi-person-circle me-2"></i><span class="hp-nombre"></span>
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <p class="text-muted mb-1"><span class="hp-rut"></span> — <span class="hp-correo"></span></p>
+        <p class="fw-semibold mb-3">
+          Historial de citas en este consultorio: <span class="hp-count">0</span> cita(s)
+        </p>
+        <div class="table-responsive">
+          <table class="table table-sm align-middle mb-0">
+            <thead>
+              <tr>
+                <th scope="col">Fecha</th>
+                <th scope="col">Hora</th>
+                <th scope="col">Motivo</th>
+                <th scope="col">Estado</th>
+                <th scope="col">Instrucción</th>
+              </tr>
+            </thead>
+            <tbody class="hp-citas"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  function badgeEstado(estado) {
+    const map = {
+      confirmada:  ['bg-confirmado',  'Confirmada'],
+      pendiente:   ['bg-pendiente',   'Pendiente'],
+      completada:  ['bg-completada',  'Completada'],
+      seguimiento: ['bg-seguimiento', 'Seguimiento'],
+      cancelada:   ['bg-secondary',   'Cancelada'],
+      no_asistio:  ['bg-no-asistio',  'No asistió'],
+    };
+    const [cls, label] = map[estado] || ['bg-secondary', estado];
+    return `<span class="badge badge-estado ${cls}">${label}</span>`;
+  }
+
+  function esc(s) {
+    const d = document.createElement('div');
+    d.textContent = (s == null) ? '' : s;
+    return d.innerHTML;
+  }
+
+  document.addEventListener('click', function (e) {
+    const btn = e.target.closest('.paciente-link');
+    if (!btn) return;
+    e.preventDefault();
+
+    const pid = btn.getAttribute('data-paciente-id');
+    const cid = btn.getAttribute('data-consultorio-id') || '';
+    const modalEl = document.getElementById('modalHistorialPaciente');
+    if (!modalEl || !pid) return;
+
+    fetch(`/consultorio/historial_paciente/?paciente_id=${encodeURIComponent(pid)}&consultorio_id=${encodeURIComponent(cid)}`)
+      .then(r => r.json())
+      .then(data => {
+        if (data.error) { alert(data.error); return; }
+        modalEl.querySelector('.hp-nombre').textContent = data.nombre || '';
+        modalEl.querySelector('.hp-rut').textContent    = data.rut || '';
+        modalEl.querySelector('.hp-correo').textContent = data.correo || '';
+        const citas = data.citas || [];
+        modalEl.querySelector('.hp-count').textContent = citas.length;
+
+        const tbody = modalEl.querySelector('.hp-citas');
+        if (citas.length === 0) {
+          tbody.innerHTML =
+            '<tr><td colspan="5" class="text-center text-muted py-3">Sin citas en este consultorio.</td></tr>';
+        } else {
+          tbody.innerHTML = citas.map(function (c) {
+            const partes = (c.fecha || '').split(' ');
+            return `<tr>
+              <td class="text-nowrap">${esc(partes[0] || '')}</td>
+              <td class="text-nowrap">${esc(partes[1] || '')}</td>
+              <td>${esc(c.motivo)}</td>
+              <td>${badgeEstado(c.estado)}</td>
+              <td>${esc(c.instruccion)}</td>
+            </tr>`;
+          }).join('');
+        }
+        bootstrap.Modal.getOrCreateInstance(modalEl).show();
+      })
+      .catch(function () { alert('No se pudo cargar el historial.'); });
+  });
+})();
+</script>

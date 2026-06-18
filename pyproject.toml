@@ -2,14 +2,15 @@
 name = "salud-publica-digital"
 version = "0.1.0"
 description = "Proyecto de Salud Pública Digital"
-authors = ["Alejandro Dinamarca <a.dinamarca@canalcero.com>"]
+authors = ["Consultorio Digital"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "3.12.4"
+python = "^3.12"
 django = "^5.0.6"
 django-crispy-forms = "^2.2"
 crispy-bootstrap5 = "^2024.2"
+psycopg2-binary = "^2.9.12"
 
 
 [build-system]

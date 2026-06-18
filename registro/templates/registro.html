@@ -103,6 +103,33 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
+  // ── Auto-formato RUT (12.345.678-9) ──────────────────────────────────
+  // El display es visual; clean_username() en el form normaliza el valor
+  // enviado (quita puntos y guión), así que basta con formatear lo visible.
+  const rutInput = document.getElementById('id_username')
+                || document.querySelector('input[name="username"]');
+
+  function formatearRut(raw) {
+    // Dejar solo dígitos y K/k (el DV puede ser K); máx 8 cuerpo + 1 DV.
+    let clean = raw.replace(/[^0-9kK]/g, '').toUpperCase().slice(0, 9);
+    if (clean.length <= 1) return clean;
+
+    const dv     = clean.slice(-1);
+    const cuerpo = clean.slice(0, -1).replace(/\D/g, '');
+    // Puntos cada 3 dígitos desde la derecha.
+    const conPuntos = cuerpo.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    return conPuntos + '-' + dv;
+  }
+
+  if (rutInput) {
+    ['input', 'blur'].forEach(function (evt) {
+      rutInput.addEventListener(evt, function () {
+        const formatted = formatearRut(this.value);
+        if (this.value !== formatted) this.value = formatted;
+      });
+    });
+  }
+
 });
 </script>
 {% endblock %}

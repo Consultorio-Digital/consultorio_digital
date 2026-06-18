@@ -15,15 +15,7 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    background: 
-        linear-gradient(to bottom, rgba(1, 0, 0, 0.52), rgba(1, 0, 93, 0.73)), 
-        url("../img/enfermera-freepik-min.jpg"), 
-        no-repeat center center fixed;
-    
-    -webkit-background-size: cover;
-    -moz-background-size: cover;
-    -o-background-size: cover;
-    background-size: cover;
+    background: #ffffff;
 }
 
 .navbar {
@@ -31,7 +23,7 @@ body {
 }
 
 .welcome-txt {
-    color: #fff;
+    color: #1a3a5c;
     font-size: 2em;
     text-align: center;
     margin-top: 2em;
@@ -52,25 +44,100 @@ body {
 
 /* ── Badges de estado (compartidos con panel_doctor) ── */
 .badge-estado {
-  padding: 6px 12px;
-  border-radius: 8px;
-  font-size: 0.85rem;
+  font-size: 0.72rem;
   font-weight: 600;
-  opacity: 0.9;
+  padding: 3px 10px;
+  border-radius: 4px;        /* menos redondeado */
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  display: inline-block;
 }
 
-.bg-confirmado  { background-color: #2B7FFF !important; color: #fff !important; }
+.bg-confirmado  { background-color: #1a3a5c !important; color: #fff !important; }
 .bg-pendiente   { background-color: #F6BE4F !important; color: #fff !important; }
 .bg-completada  { background-color: #14AE5C !important; color: #fff !important; }
 .bg-seguimiento { background-color: #9B59B6 !important; color: #fff !important; }
 .bg-cancelada   { background-color: #6c757d !important; color: #fff !important; }
 .bg-no-asistio  { background-color: #E74C3C !important; color: #fff !important; }
 
+/* ── Alineación vertical de celdas en las tablas ── */
+.table td {
+  vertical-align: middle;
+}
+
+/* Nav tabs institucional */
+.nav-tabs {
+  border-bottom: 2px solid #e0e7ef;
+  gap: 4px;
+}
+
+.nav-tabs .nav-link {
+  border: none;
+  border-bottom: 3px solid transparent;
+  border-radius: 0;
+  color: #5a7a96;
+  font-size: 0.85rem;
+  font-weight: 500;
+  padding: 10px 16px;
+  margin-bottom: -2px;
+  background: transparent;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.nav-tabs .nav-link:hover {
+  color: #1a3a5c;
+  border-bottom-color: #a0b8d0;
+  background: transparent;
+}
+
+.nav-tabs .nav-link.active {
+  color: #1a3a5c;
+  font-weight: 700;
+  border-bottom: 3px solid #1a3a5c;
+  background: transparent;
+}
+
+.nav-tabs .nav-link .badge {
+  font-size: 0.65rem;
+  padding: 2px 6px;
+  border-radius: 10px;
+  background-color: #1a3a5c;
+  color: white;
+  margin-left: 5px;
+  vertical-align: middle;
+}
+
+.nav-tabs .nav-link.active .badge {
+  background-color: #1a3a5c;
+}
+
+/* ── Tarjetas de resumen (stats) ── */
+.stat-card {
+  border: none;
+  border-radius: 10px;
+  border-top: 3px solid;
+  box-shadow: 0 1px 6px rgba(26,58,92,0.08);
+  padding: 1.1rem 1.25rem;
+}
+
+.stat-card .stat-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #5a7a96;
+  margin-bottom: 4px;
+}
+
+.stat-card .stat-num {
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
 /* ── Truncado con tooltip (instrucción del doctor) ── */
 .td-estado {
   max-width: 200px;
-  vertical-align: top !important;
-  padding-top: 12px !important;
 }
 
 .col-instruccion {

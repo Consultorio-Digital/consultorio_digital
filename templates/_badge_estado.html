@@ -1,0 +1,17 @@
+{% comment %}Badge de estado de Reserva. Espera la variable `estado`.
+Usa las mismas clases que principal.html (definidas en principal.css).{% endcomment %}
+{% if estado == "confirmada" %}
+  <span class="badge badge-estado bg-confirmado">Confirmada</span>
+{% elif estado == "pendiente" %}
+  <span class="badge badge-estado bg-pendiente">Pendiente</span>
+{% elif estado == "completada" %}
+  <span class="badge badge-estado bg-completada">Completada</span>
+{% elif estado == "seguimiento" %}
+  <span class="badge badge-estado bg-seguimiento">Seguimiento</span>
+{% elif estado == "cancelada" %}
+  <span class="badge badge-estado bg-secondary">Cancelada</span>
+{% elif estado == "no_asistio" %}
+  <span class="badge badge-estado bg-no-asistio">No asistió</span>
+{% else %}
+  <span class="badge badge-estado bg-secondary">{{ estado }}</span>
+{% endif %}

@@ -47,19 +47,19 @@
 
 .login-input:focus {
   background-color: #fff;
-  border-color: #2B7FFF;
-  box-shadow: 0 0 0 3px rgba(43, 127, 255, 0.15);
+  border-color: #1a3a5c;
+  box-shadow: 0 0 0 3px rgba(26, 58, 92, 0.15);
 }
 
 /* ── Botón ── */
 .login-btn {
   height: 41px;
   border-radius: 7px;
-  background-color: #2B7FFF;
+  background-color: #1a3a5c;
   border: none;
   letter-spacing: 0.02em;
 }
 
 .login-btn:hover {
-  background-color: #1a6fef;
+  background-color: #0d2340;
 }

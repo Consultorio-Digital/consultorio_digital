@@ -26,6 +26,15 @@ def registro(request):
                 },
             )
 
+            # Persistir los datos de contacto que vienen del formulario pero que
+            # auth.User no almacena (dirección, teléfono y fecha de nacimiento).
+            usuario.direccion = form.cleaned_data.get("address") or None
+            usuario.telefono  = form.cleaned_data.get("phone") or None
+            birthdate = form.cleaned_data.get("birthdate")
+            if birthdate:
+                usuario.fecha_nacimiento = birthdate
+            usuario.save()
+
             if tipo == 'profesional':
                 Profesional.objects.get_or_create(
                     usuario=usuario,

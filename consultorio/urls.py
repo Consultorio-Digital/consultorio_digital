@@ -11,4 +11,7 @@ urlpatterns = [
     path("obtener_doctores/", views.obtener_doctores, name="obtener_doctores"),
     path("obtener_fechas/", views.obtener_fechas, name="obtener_fechas"),
     path("obtener_slots/", views.obtener_slots, name="obtener_slots"),
+    path("actualizar_reserva/", views.actualizar_reserva, name="actualizar_reserva"),
+    path("agregar_disponibilidad/", views.agregar_disponibilidad, name="agregar_disponibilidad"),
+    path("cambiar_consultorio/", views.cambiar_consultorio, name="cambiar_consultorio"),
 ]

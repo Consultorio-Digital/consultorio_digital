@@ -1,0 +1,650 @@
+================================================================================
+DIAGNÓSTICO COMPLETO DEL PROYECTO — "Consultorio Digital" / salud_publica_digital
+Generado: 2026-06-17  |  Branch: master
+================================================================================
+
+Propósito de este documento: dar a otro agente (Claude web) el contexto completo
+del proyecto sin acceso al repositorio. Todo en texto plano con separadores.
+
+
+================================================================================
+0. STACK TECNOLÓGICO IDENTIFICADO
+================================================================================
+
+- Lenguaje:        Python 3.12.4 (pyproject) / docs mencionan 3.11.8 (inconsistencia)
+- Framework web:   Django 5.0.6 (migraciones generadas con Django 5.1)
+- Gestor deps:     Poetry (pyproject.toml + poetry.lock)
+- Base de datos:   SQLite (db.sqlite3, motor django.db.backends.sqlite3)
+- Frontend:        Server-side rendering con Django Templates + Bootstrap 5.3.3
+                   (vía CDN) + Bootstrap Icons. NO hay build JS, ni node_modules,
+                   ni archivos .js propios. AJAX hecho con fetch inline en templates.
+- Formularios:     django-crispy-forms 2.2 + crispy-bootstrap5 2024.2 (pack bootstrap5)
+- Autenticación:   django.contrib.auth + backend custom (login por RUT o email)
+- Datos:           geodata.json (consultorios reales del MINSAL/MMA, ~3.6 MB)
+- Dominio:         Gestión de horas médicas para consultorios de atención primaria
+                   en Chile. Proyecto académico (curso ICI-513, UV).
+
+Apps Django: principal, registro, consultorio (+ admin/auth/sessions de Django)
+
+
+================================================================================
+1. ESTRUCTURA DE DIRECTORIOS
+   (excluye node_modules, .git, vendor, __pycache__, dist, build)
+================================================================================
+
+GPI/
+├── manage.py
+├── pyproject.toml
+├── poetry.lock
+├── README.md
+├── .env.example
+├── .gitignore
+├── .python-version
+├── db.sqlite3                         (SQLite, ignorada por git)
+├── salud_publica_digital.sql          (dump SQL)
+├── salud_publica_digital.txt
+├── salud_publica_digital.pdf / .pptx  (entregables)
+│
+├── salud_publica_digital/             [PROYECTO DJANGO — config]
+│   ├── __init__.py
+│   ├── settings.py
+│   ├── urls.py                        (URLconf raíz)
+│   ├── wsgi.py
+│   └── asgi.py
+│
+├── principal/                         [APP: home / dashboard]
+│   ├── __init__.py
+│   ├── admin.py                       (vacío)
+│   ├── apps.py
+│   ├── models.py                      (vacío — sin modelos)
+│   ├── views.py                       (home: dashboard paciente/doctor)
+│   ├── urls.py                        (app_name="principal")
+│   ├── tests.py                       (52 líneas)
+│   ├── migrations/__init__.py
+│   └── templates/principal.html
+│
+├── registro/                         [APP: registro + autenticación]
+│   ├── __init__.py
+│   ├── admin.py                       (vacío)
+│   ├── apps.py
+│   ├── models.py                      (vacío — usa User de Django)
+│   ├── backends.py                    (RutOrEmailBackend)
+│   ├── forms.py                       (RegisterForm + validación RUT chileno)
+│   ├── views.py                       (registro)
+│   ├── tests.py                       (190 líneas)
+│   ├── migrations/__init__.py
+│   └── templates/
+│       ├── registro.html
+│       └── registration/login.html
+│
+├── consultorio/                      [APP: núcleo del dominio]
+│   ├── __init__.py
+│   ├── admin.py                       (vacío — modelos NO registrados en admin)
+│   ├── apps.py
+│   ├── models.py                      (Usuario, Administrador, Profesional,
+│   │                                   Paciente, Consultorio, Reserva,
+│   │                                   Disponibilidad, Atencion)
+│   ├── views.py                       (reservas, slots, AJAX, cancelación)
+│   ├── urls.py
+│   ├── forms.py
+│   ├── tests.py                       (594 líneas — la app mejor testeada)
+│   ├── migrations/                    (0001..0007)
+│   ├── management/commands/
+│   │   └── cargar_consultorios.py     (carga geodata.json en BD)
+│   └── templates/
+│       ├── consultorio.html           (flujo de reserva, 287 líneas)
+│       ├── cancelar_hora.html
+│       └── mis_horas.html
+│
+├── templates/
+│   └── base.html                      (layout global + navbar)
+│
+├── static/
+│   ├── css/  (form, login, principal, navbar, mis_horas, consultorio)
+│   └── img/  (favicon.ico, logo_gobierno_chile.svg)
+│
+├── utils/
+│   ├── get_geodata/__init__.py
+│   └── data/geodata.json              (~3.6 MB — datos reales consultorios)
+│
+├── queries/
+│   └── data.json                      (~29 MB)
+│
+└── docs/
+    ├── INSTRUCT.md                    (instrucciones de build/setup)
+    ├── er.png / er.drawio             (diagrama entidad-relación)
+    ├── er-extended.png / .drawio
+    ├── diccionario_datos.docx
+    ├── entrega_1/  (informe, EDT, presentaciones — pdf/docx/pptx/xlsx)
+    └── entrega_2/  (UCP, gantt, matriz riesgos, EDT — varios formatos)
+
+
+================================================================================
+2. ARCHIVOS DE DEPENDENCIAS Y CONFIGURACIÓN
+================================================================================
+
+--------------------------------------------------------------------------------
+FILE: pyproject.toml
+--------------------------------------------------------------------------------
+[tool.poetry]
+name = "salud-publica-digital"
+version = "0.1.0"
+description = "Proyecto de Salud Pública Digital"
+authors = ["Consultorio Digital"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "3.12.4"
+django = "^5.0.6"
+django-crispy-forms = "^2.2"
+crispy-bootstrap5 = "^2024.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+--------------------------------------------------------------------------------
+FILE: .env.example
+--------------------------------------------------------------------------------
+# Copia este archivo como .env y rellena los valores reales.
+# .env nunca se sube al repositorio.
+
+DJANGO_SECRET_KEY=cambia-esto-por-una-clave-segura
+
+--------------------------------------------------------------------------------
+FILE: salud_publica_digital/settings.py
+--------------------------------------------------------------------------------
+from pathlib import Path
+from os import path
+import os
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+# SECRET_KEY desde env var; fallback inseguro para desarrollo local
+SECRET_KEY = os.environ.get(
+    'DJANGO_SECRET_KEY',
+    'django-insecure-f0857%(zohy13=%fh)dvywm8f1ehr-#37asmy#_9brw(unj%&6',
+)
+
+DEBUG = True                  # <-- True en repo (no apto para producción)
+ALLOWED_HOSTS = []
+
+INSTALLED_APPS = [
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    "crispy_forms",
+    "crispy_bootstrap5",
+    "principal",
+    "registro",
+    "consultorio",
+]
+
+MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+]
+
+ROOT_URLCONF = 'salud_publica_digital.urls'
+
+TEMPLATES = [{
+    'BACKEND': 'django.template.backends.django.DjangoTemplates',
+    'DIRS': [path.join(BASE_DIR, "templates")],
+    'APP_DIRS': True,
+    'OPTIONS': {'context_processors': [
+        'django.template.context_processors.debug',
+        'django.template.context_processors.request',
+        'django.contrib.auth.context_processors.auth',
+        'django.contrib.messages.context_processors.messages',
+    ]},
+}]
+
+WSGI_APPLICATION = 'salud_publica_digital.wsgi.application'
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
+}
+
+AUTH_PASSWORD_VALIDATORS = [
+    UserAttributeSimilarityValidator, MinimumLengthValidator,
+    CommonPasswordValidator, NumericPasswordValidator,  # (nombres completos en archivo)
+]
+
+LANGUAGE_CODE = 'en-us'
+TIME_ZONE = 'UTC'
+USE_I18N = True
+USE_TZ = True
+
+STATIC_URL = 'static/'
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+AUTHENTICATION_BACKENDS = [
+    "registro.backends.RutOrEmailBackend",   # <-- backend custom (login RUT/email)
+]
+
+CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
+CRISPY_TEMPLATE_PACK = "bootstrap5"
+LOGIN_REDIRECT_URL = "/"
+LOGOUT_REDIRECT_URL = "/"
+
+NOTA: NO se define STATICFILES_DIRS aunque existe la carpeta static/ a nivel raíz.
+      Los estáticos se sirven en dev gracias a APP_DIRS + STATIC_URL, pero la carpeta
+      static/ raíz no está declarada explícitamente.
+
+
+================================================================================
+3. ENRUTAMIENTO (URLs)
+================================================================================
+
+--------------------------------------------------------------------------------
+FILE: salud_publica_digital/urls.py  (URLconf raíz)
+--------------------------------------------------------------------------------
+from django.contrib import admin
+from django.urls import path, include
+from registro import views as registro_views
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('', include('principal.urls')),
+    path('consultorio/', include('consultorio.urls')),
+    path('registro/', registro_views.registro, name='registro'),
+    path('', include('django.contrib.auth.urls')),   # login/logout/password reset
+]
+
+--------------------------------------------------------------------------------
+FILE: principal/urls.py
+--------------------------------------------------------------------------------
+from django.urls import path
+from . import views
+app_name = "principal"
+urlpatterns = [
+    path("", views.home, name="principal"),
+]
+
+--------------------------------------------------------------------------------
+FILE: consultorio/urls.py
+--------------------------------------------------------------------------------
+from django.urls import path
+from . import views
+urlpatterns = [
+    path("", views.seleccionar_region, name="consultorio"),
+    path("mis_horas", views.mis_horas, name="mis_horas"),
+    path("cancelar_hora", views.cancelar_hora, name="cancelar_hora"),
+    path("obtener_comunas/<int:c_reg>/", views.obtener_comunas, name="obtener_comunas"),
+    path("obtener_consultorios/<str:c_com>/", views.obtener_consultorios, name="obtener_consultorios"),
+    path("historial_paciente/", views.historial_paciente, name="historial_paciente"),
+    path("obtener_doctores/", views.obtener_doctores, name="obtener_doctores"),
+    path("obtener_fechas/", views.obtener_fechas, name="obtener_fechas"),
+    path("obtener_slots/", views.obtener_slots, name="obtener_slots"),
+]
+
+*** HALLAZGO IMPORTANTE ***
+principal/views.py hace `return redirect('panel_doctor')` cuando el usuario es
+un Profesional, PERO NO existe ninguna URL ni vista llamada 'panel_doctor' en
+ningún urls.py del proyecto. Esto provoca NoReverseMatch para todo usuario
+profesional al entrar al home. Es un endpoint/vista faltante (o eliminada).
+
+
+================================================================================
+4. MODELOS DE DATOS
+================================================================================
+
+NOTA DE ARQUITECTURA: hay un MODELO DUAL de usuarios.
+- Django `auth.User` (tabla nativa): usado para autenticación/login/sesión.
+  El campo `username` almacena el RUT normalizado (sin puntos ni guión).
+- `consultorio.Usuario` (modelo propio): perfil de dominio, PK = rut (string).
+  Se sincroniza con get_or_create en registro/views.py y al reservar.
+Ambos coexisten; no hay FK entre auth.User y Usuario, sólo el RUT como nexo.
+
+--------------------------------------------------------------------------------
+FILE: registro/models.py
+--------------------------------------------------------------------------------
+(VACÍO — sólo "from django.db import models". registro reutiliza auth.User.)
+
+--------------------------------------------------------------------------------
+FILE: principal/models.py
+--------------------------------------------------------------------------------
+(VACÍO — sin modelos.)
+
+--------------------------------------------------------------------------------
+FILE: consultorio/models.py  (TODOS los modelos del dominio)
+--------------------------------------------------------------------------------
+from django.db import models
+from django.contrib.auth.models import User
+
+class Usuario(models.Model):
+    rut = models.CharField(max_length=12, primary_key=True)
+    nombre = models.CharField(max_length=255)
+    apellido = models.CharField(max_length=255)
+    fecha_nacimiento = models.DateField()
+    direccion = models.EmailField(null=True, blank=True)   # <-- OJO: dirección como EmailField
+    telefono = models.CharField(max_length=15, null=True, blank=True)
+    correo = models.CharField(max_length=255)
+    class Meta: ordering = ['apellido', 'nombre']
+
+class Administrador(models.Model):
+    usuario = OneToOneField(Usuario, CASCADE, related_name='administrador')
+
+class Profesional(models.Model):
+    usuario      = OneToOneField(Usuario, CASCADE, related_name='profesional')
+    especialidad = CharField(max_length=255)
+    consultorio  = ForeignKey('Consultorio', null=True, blank=True,
+                              SET_NULL, related_name='profesionales')
+
+class Paciente(models.Model):
+    usuario = OneToOneField(Usuario, CASCADE, related_name='paciente')
+    ingreso = DateField()
+
+class Consultorio(models.Model):
+    objectid  = IntegerField(primary_key=True)
+    nombre    = CharField(255)
+    c_reg     = FloatField()        nom_reg = CharField(255)
+    c_com     = CharField(10)       nom_com = CharField(255)
+    c_ant     = CharField(10)       c_vig   = FloatField()
+    c_mad     = CharField(10)       c_nmad  = CharField(10)
+    c_depend  = FloatField()        depen   = CharField(255)
+    perenec, tipo, ambito           = CharField(255) ...
+    urgencia  = CharField(3)        certifica = CharField(3)
+    depen_a, nivel, via             = CharField(255)
+    numero    = CharField(10)       direccion = CharField(255)
+    fono      = CharField(255, null=True, blank=True)
+    f_inicio  = FloatField()        f_reaper  = CharField(255)
+    sapu, f_cambio, tipo_camb, prestador, estado, nivel_com, modalidad = CharField(255)
+    latitud   = FloatField()        longitud = FloatField()
+    # Espejo del esquema geodata.json del MINSAL (datos reales de establecimientos)
+
+class Reserva(models.Model):
+    ESTADO_CHOICES = [pendiente, confirmada, completada, seguimiento, cancelada, no_asistio]
+    consultorio        = ForeignKey(Consultorio, CASCADE, related_name='reservas')
+    paciente           = ForeignKey(Paciente, CASCADE, related_name='reservas')
+    profesional        = ForeignKey(Profesional, null=True, blank=True, SET_NULL,
+                                    related_name='reservas_confirmadas')
+    fecha_reserva      = DateTimeField()
+    motivo             = TextField()
+    estado             = CharField(20, choices=ESTADO_CHOICES, default='pendiente')
+    fecha_seguimiento  = DateField(null=True, blank=True)
+    motivo_cancelacion = CharField(500, null=True, blank=True)
+    notas_doctor       = TextField(null=True, blank=True)
+    class Meta: ordering = ['fecha_reserva']
+
+class Disponibilidad(models.Model):
+    profesional = ForeignKey(Profesional, CASCADE, related_name='disponibilidades')
+    fecha       = DateField()
+    hora_inicio = TimeField()
+    hora_fin    = TimeField()
+    class Meta:
+        ordering = ['fecha', 'hora_inicio']
+        unique_together = [['profesional', 'fecha', 'hora_inicio']]
+
+class Atencion(models.Model):
+    id = AutoField(primary_key=True)
+    medicacion, estado, gravedad, modalidad = CharField(255)
+    fecha = DateField()
+    rut_profesional = CharField(12)
+    id_reserva = ForeignKey(Reserva, CASCADE)
+
+MIGRACIONES consultorio/ (historial del esquema):
+  0001_initial            — esquema base
+  0002_reserva_estado     — campo estado en Reserva
+  0003_doctor_features    — features del doctor
+  0004_reserva_seguimiento
+  0005_reserva_motivo_cancelacion
+  0006_reserva_notas_doctor
+  0007_reserva_no_asistio — añade estado 'no_asistio'
+(Generadas originalmente con Django 5.1 según comentario en 0001.)
+
+
+================================================================================
+5. AUTENTICACIÓN Y MIDDLEWARE
+================================================================================
+
+--------------------------------------------------------------------------------
+FILE: registro/backends.py  (backend de autenticación custom)
+--------------------------------------------------------------------------------
+from django.contrib.auth.backends import ModelBackend
+from django.contrib.auth.models import User
+
+def _normalize_rut(value: str) -> str:
+    return value.replace(".", "").replace("-", "").strip()
+
+class RutOrEmailBackend(ModelBackend):
+    """Autentica por RUT (con o sin puntos/guión) o por correo electrónico."""
+    def authenticate(self, request, username=None, password=None, **kwargs):
+        if not username or not password:
+            return None
+        user = None
+        # 1. Buscar por RUT normalizado (== User.username)
+        normalized = _normalize_rut(username)
+        try:
+            user = User.objects.get(username=normalized)
+        except User.DoesNotExist:
+            pass
+        # 2. Fallback por email
+        if user is None:
+            try:
+                user = User.objects.get(email__iexact=username.strip())
+            except User.DoesNotExist:
+                pass
+        if user is None:
+            return None
+        if user.check_password(password) and self.user_can_authenticate(user):
+            return user
+        return None
+
+--------------------------------------------------------------------------------
+FILE: registro/forms.py  (RegisterForm + validación RUT)
+--------------------------------------------------------------------------------
+Funciones clave:
+- validate_chilean_dni(rut): valida formato ^\d{7,8}[0-9Kk]$ y dígito verificador
+  (módulo 11). Devuelve bool.
+- remove_points_and_hyphens(rut): normaliza el RUT.
+
+class RegisterForm(UserCreationForm):
+    TIPO_CHOICES = [('paciente','Paciente'), ('profesional','Profesional')]
+    class Meta:
+        model = User
+        fields = ["username","email","first_name","last_name",
+                  "address","phone","birthdate"]   # <-- ver HALLAZGO abajo
+    # Campos declarados explícitamente (override): username(=RUT), email, first_name,
+    #   last_name, address, phone, birthdate, tipo, especialidad.
+    # usable_password = None
+    # __init__ personaliza labels (en español), help_texts, placeholders,
+    #   error_messages y layout crispy (FormHelper, form_tag=False).
+    # clean_username(): valida RUT chileno y lo normaliza.
+
+*** HALLAZGO ***
+Meta.fields incluye 'address', 'phone', 'birthdate' que NO son campos del modelo
+auth.User. Funciona porque están declarados como form fields explícitos (Django
+los toma de la clase, no del modelo), pero esos datos NO se guardan en User al
+hacer form.save() — auth.User no tiene esas columnas. Sólo se usan address/phone/
+birthdate a nivel de formulario; no persisten en BD salvo que la vista los maneje
+(registro/views.py NO los copia a Usuario salvo nombre/apellido/correo).
+
+MIDDLEWARE: stack estándar de Django (security, sessions, common, csrf, auth,
+messages, clickjacking). Sin middleware custom.
+
+DECORADOR DE ACCESO: las vistas de consultorio usan @login_required(login_url='/login/').
+El control de rol (paciente vs profesional) se hace por consulta:
+  Profesional.objects.filter(usuario__rut=request.user.username).exists()
+
+
+================================================================================
+6. VISTAS PRINCIPALES (resumen por app)
+================================================================================
+
+--------------------------------------------------------------------------------
+FILE: principal/views.py
+--------------------------------------------------------------------------------
+home(request):
+  - Redirige a 'login' si no autenticado.
+  - Si el usuario es Profesional -> redirect('panel_doctor')  [URL INEXISTENTE]
+  - Si es paciente: lista reservas activas (estado pendiente/confirmada con fecha
+    futura, o seguimiento con fecha_seguimiento futura), select_related a
+    consultorio y profesional__usuario.
+  - Lee session 'reserva_confirmada' (banner post-reserva).
+  - Render principal.html
+
+--------------------------------------------------------------------------------
+FILE: registro/views.py
+--------------------------------------------------------------------------------
+registro(request):
+  - POST: valida RegisterForm -> user = form.save()
+  - get_or_create de consultorio.Usuario (rut = user.username)
+  - Según 'tipo': crea Profesional (con especialidad) o Paciente (con ingreso=hoy)
+  - authenticate() + login() -> redirect('/')
+  - GET: renderiza registro.html con el form
+
+--------------------------------------------------------------------------------
+FILE: consultorio/views.py  (la más extensa)
+--------------------------------------------------------------------------------
+seleccionar_region(request)  [name='consultorio']:
+  - GET: lista regiones (agrupadas por c_reg) -> consultorio.html (flujo reserva)
+  - POST: crea Reserva. Recibe consultorio, profesional_id, motivo, slot
+    ("YYYY-MM-DD HH:MM"). Verifica que el slot no esté tomado (excluye canceladas).
+    Guarda 'reserva_confirmada' en sesión. Redirige a principal:principal.
+historial_paciente(request) [JSON]: datos de contacto + citas previas de un
+    paciente. SÓLO profesionales (403 si no). No incluye info clínica sensible.
+obtener_doctores(request) [JSON]: profesionales de un consultorio.
+obtener_fechas(request) [JSON]: fechas con Disponibilidad (>= hoy) de un profesional.
+obtener_slots(request) [JSON]: genera slots de 30 min entre hora_inicio/hora_fin
+    de las Disponibilidades, descontando los ya reservados (no cancelados).
+obtener_comunas(request, c_reg) [JSON]: comunas de una región.
+obtener_consultorios(request, c_com) [JSON]: consultorios de una comuna.
+home(request): render simple de consultorio.html (no enrutada actualmente).
+mis_horas(request): historial paginado (15/pág) de citas pasadas/cerradas.
+reservar_hora(request): render de "reservar_hora.html"  [TEMPLATE INEXISTENTE — ver hallazgo]
+cancelar_hora(request): flujo en 2 pasos con código de 6 dígitos guardado en
+    sesión (action: seleccionar / limpiar / confirmar). Marca Reserva.estado='cancelada'.
+
+NOTAS DE DESARROLLO presentes en el propio archivo (cabecera de consultorio/views.py):
+  1. Se permite reservar/declarar disponibilidad en fechas pasadas (intencional
+     para pruebas; falta validar fecha >= now() en producción).
+  2. El código de cancelación de 6 dígitos se MUESTRA en pantalla; en producción
+     debería enviarse al correo del paciente.
+
+*** HALLAZGO ***
+reservar_hora() renderiza "reservar_hora.html", pero ese template NO existe en el
+repo (los templates de consultorio son consultorio.html, cancelar_hora.html,
+mis_horas.html). Además reservar_hora NO está enrutada en consultorio/urls.py.
+
+
+================================================================================
+7. COMANDO DE GESTIÓN (carga de datos)
+================================================================================
+
+--------------------------------------------------------------------------------
+FILE: consultorio/management/commands/cargar_consultorios.py
+--------------------------------------------------------------------------------
+- Comando: `python manage.py cargar_consultorios`
+- Borra TODOS los Consultorio existentes y los recarga desde
+  utils/data/geodata.json (estructura: lista de objetos con clave "fields").
+- Usa bulk_create. Reporta nº de consultorios y nº de regiones cargadas.
+- DATA_PATH = <raíz>/utils/data/geodata.json
+
+
+================================================================================
+8. TEMPLATES (server-side, Bootstrap 5)
+================================================================================
+
+Inventario (líneas):
+  templates/base.html ................. 110   (layout + navbar global)
+  principal/.../principal.html ........ 273   (dashboard, citas)
+  registro/.../registro.html .......... 107
+  registro/.../registration/login.html  107
+  consultorio/.../consultorio.html .... 287   (flujo de reserva con AJAX fetch)
+  consultorio/.../cancelar_hora.html .. 174
+  consultorio/.../mis_horas.html ...... 176
+
+base.html (representativo):
+  - {% load static %}, lang="es", favicon, Bootstrap 5.3.3 + Bootstrap Icons (CDN).
+  - CSS propio: static/css/navbar.css (+ {% block extra_css %}).
+  - Navbar "ConsultorioDigital" con logo Gobierno de Chile, dropdown de usuario y
+    botón logout (POST a {% url 'logout' %}).
+  - Bloques: title, navbar, content, extra_css, extra_js.
+  - bootstrap.bundle.min.js vía CDN al final.
+
+CSS propios (static/css/): navbar(18), login(64), principal(101), mis_horas(77),
+  form(5), consultorio(2). No hay JavaScript en archivos; el AJAX vive inline en
+  los templates (fetch a los endpoints JSON de consultorio).
+
+
+================================================================================
+9. TESTS
+================================================================================
+
+  consultorio/tests.py ... 594 líneas  (app más testeada: flujo de reserva, vistas)
+  registro/tests.py ...... 190 líneas  (validación RUT, registro, login)
+  principal/tests.py ......  52 líneas
+Los commits recientes incluyen PRs de tests ("test/flujo-funcional-reserva",
+"test/vistas-unitario"), indicando trabajo activo en cobertura de pruebas.
+
+
+================================================================================
+10. README (completo)
+================================================================================
+
+# Consultorio Digital
+Sistema de gestión de horas médicas para consultorios de salud primaria en Chile.
+Desarrollado en el marco del curso ICI-513 Gestión de Proyectos Informáticos,
+Ingeniería Civil en Informática — Universidad de Valparaíso.
+
+## Entrega 1
+- Informe Entrega 1: EDT, caso de negocio y casos de uso
+- Presentación Entrega 1
+- EDT Entrega 1: Estructura de Desglose del Trabajo
+
+## Entrega 2
+- Estimación UCP: UCP = 217.87 -> 1.743 h estimadas
+- Cronograma: 8 fases, 41 tareas, 4 hitos, 576 h
+- Carta Gantt (SVG/PNG)
+- Matriz de Riesgos: 12 riesgos PESTLE con mitigaciones
+- Presentación Entrega 2
+
+(El README es principalmente índice de entregables académicos; las instrucciones
+técnicas de build están en docs/INSTRUCT.md.)
+
+
+================================================================================
+11. RESUMEN DE HALLAZGOS / PUNTOS DE ATENCIÓN
+================================================================================
+
+[CRÍTICO] 'panel_doctor' referenciado en principal/views.py:13 NO existe como URL
+          ni vista -> NoReverseMatch para cualquier usuario Profesional al entrar
+          al home. Falta el panel/vista del doctor (o fue eliminado).
+
+[MEDIO]   consultorio/views.py reservar_hora() renderiza "reservar_hora.html"
+          (template inexistente) y no está enrutada. Código muerto o incompleto.
+
+[MEDIO]   RegisterForm.Meta.fields incluye address/phone/birthdate que no son
+          columnas de auth.User; no persisten en BD (sólo viven en el form).
+
+[MENOR]   Usuario.direccion declarado como EmailField (debería ser CharField/TextField).
+
+[SEGURIDAD/DEV] DEBUG=True y ALLOWED_HOSTS=[] en settings.py (sólo desarrollo).
+          SECRET_KEY tiene fallback inseguro hardcodeado. Código de cancelación
+          se muestra en pantalla. Reservas en fechas pasadas permitidas. Todo
+          esto está documentado como intencional para entorno académico/pruebas.
+
+[INFRA]   Inconsistencia de versión de Python: pyproject pide 3.12.4; docs/INSTRUCT.md
+          y migraciones/instrucciones mencionan 3.11.8 / Django 5.1.
+
+[INFRA]   queries/data.json (~29 MB) y utils/data/geodata.json (~3.6 MB) versionados.
+          BD SQLite (db.sqlite3) presente pero ignorada por .gitignore.
+
+[ARQ]     Doble modelo de usuario (auth.User para auth + consultorio.Usuario para
+          dominio) sincronizados sólo por el RUT, sin FK. Riesgo de desincronización.
+
+================================================================================
+FIN DEL DIAGNÓSTICO
+================================================================================

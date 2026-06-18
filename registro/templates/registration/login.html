@@ -67,7 +67,7 @@
               class="form-control login-input"
               id="id_username"
               name="username"
-              placeholder="12.345.678-9 o correo@ejemplo.com"
+              placeholder="Ej: 12.345.678-9 o correo@ejemplo.com"
               autofocus
             />
           </div>
@@ -105,4 +105,45 @@
 
   </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+  // ── Auto-formato RUT (12.345.678-9) ──────────────────────────────────
+  // Mismo formateador que registro.html. OJO: este campo acepta RUT **o**
+  // correo (RutOrEmailBackend), así que solo se formatea cuando el valor
+  // parece un RUT (sin '@' ni letras distintas de K) para no romper el
+  // login por correo.
+  const rutInput = document.getElementById('id_username');
+
+  function formatearRut(raw) {
+    // Dejar solo dígitos y K/k (el DV puede ser K); máx 8 cuerpo + 1 DV.
+    let clean = raw.replace(/[^0-9kK]/g, '').toUpperCase().slice(0, 9);
+    if (clean.length <= 1) return clean;
+
+    const dv     = clean.slice(-1);
+    const cuerpo = clean.slice(0, -1).replace(/\D/g, '');
+    // Puntos cada 3 dígitos desde la derecha.
+    const conPuntos = cuerpo.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    return conPuntos + '-' + dv;
+  }
+
+  if (rutInput) {
+    if (!rutInput.placeholder) {
+      rutInput.placeholder = 'Ej: 12.345.678-9';
+    }
+    ['input', 'blur'].forEach(function (evt) {
+      rutInput.addEventListener(evt, function () {
+        // Parece correo/texto (tiene @ o letras que no son K) → no formatear.
+        if (/[@a-jl-zA-JL-Z]/.test(this.value)) return;
+        const formatted = formatearRut(this.value);
+        if (this.value !== formatted) this.value = formatted;
+      });
+    });
+  }
+
+});
+</script>
 {% endblock %}

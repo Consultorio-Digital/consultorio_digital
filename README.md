@@ -1,23 +1,71 @@
 # Consultorio Digital
 
-Sistema de gestión de horas médicas para consultorios de salud primaria en Chile.
-Desarrollado en el marco del curso **ICI-513 Gestión de Proyectos Informáticos**,
+Sistema web de gestión de horas médicas para consultorios de
+atención primaria en Chile. Desarrollado para el curso ICI-513,
 Ingeniería Civil en Informática — Universidad de Valparaíso.
 
-## Entrega 1
+## Stack tecnológico
+- Backend: Python 3.12 + Django 5.1
+- Frontend: Django Templates + Bootstrap 5.3
+- Base de datos: PostgreSQL 16 (SQLite en desarrollo sin Docker)
+- Contenedores: Docker + Docker Compose
+- Dependencias: Poetry
 
-| Documento | Descripción |
-|---|---|
-| [Informe Entrega 1](docs/entrega_1/informe_entrega_1.pdf) | Informe escrito: EDT, caso de negocio y casos de uso |
-| [Presentación Entrega 1](docs/entrega_1/presentacion_entrega_1.pdf) | Diapositivas de la exposición |
-| [EDT Entrega 1](docs/entrega_1/edt_entrega_1.pdf) | Estructura de Desglose del Trabajo |
+## Roles del sistema
+| Rol | Acceso | Credenciales de prueba |
+|-----|--------|----------------------|
+| Administrador | /panel_admin/ | 12345678-9 / admin123 |
+| Profesional | /panel_doctor/ | 11111111-1 / prof123 |
+| Paciente | / | Registrarse en /registro/ |
 
-## Entrega 2
+## Levantar con Docker (recomendado)
+```bash
+cp .env.docker .env
+docker compose up --build
+```
 
-| Documento | Descripción |
-|---|---|
-| [Estimación UCP](docs/entrega_2/UseCasePoints_entrega2.xlsx) | Use Case Points — UCP = 217.87 → 1.743 h estimadas |
-| [Cronograma](docs/entrega_2/edt_entrega_2.xlsx) | Planificación: 8 fases, 41 tareas, 4 hitos, 576 h |
-| [Carta Gantt](docs/entrega_2/gantt_entrega_2.svg) | Carta Gantt del cronograma ([SVG](docs/entrega_2/gantt_entrega_2.svg) · [PNG](docs/entrega_2/gantt_entrega_2.png)) |
-| [Matriz de Riesgos](docs/entrega_2/Matriz_Riesgos_entrega2.docx) | 12 riesgos PESTLE con mitigaciones |
-| [Presentación Entrega 2](docs/entrega_2/presentacion_entrega_2.pptx) | Diapositivas: UCP, cronograma y riesgos |
+Primera vez — cargar datos:
+```bash
+docker compose exec web python manage.py cargar_consultorios
+docker compose exec web python manage.py poblar_datos
+```
+El administrador se crea automáticamente en cada arranque.
+
+## Levantar sin Docker
+```bash
+poetry install
+poetry run python manage.py migrate
+poetry run python manage.py cargar_consultorios
+poetry run python manage.py poblar_datos
+poetry run python manage.py runserver
+```
+
+## Comandos de gestión
+| Comando | Descripción |
+|---------|-------------|
+| cargar_consultorios | Carga 2.560 consultorios reales del MINSAL |
+| poblar_datos | Genera 6 profesionales, 10 pacientes, 20 reservas de prueba en Viña del Mar |
+| crear_admin | Crea o actualiza el administrador del sistema |
+
+## Estructura del proyecto
+```
+GPI/
+├── principal/      # App: home, panel paciente, panel admin, panel doctor
+├── registro/       # App: registro de usuarios y autenticación
+├── consultorio/    # App: núcleo del dominio (reservas, disponibilidades)
+├── templates/      # Templates globales (base.html, ayuda.html)
+├── static/         # CSS e imágenes
+├── utils/          # geodata.json con consultorios del MINSAL
+├── docs/           # Documentación académica y técnica
+├── Dockerfile
+├── docker-compose.yml
+└── pyproject.toml
+```
+
+## Variables de entorno
+Ver .env.example para la lista completa de variables requeridas.
+
+## Tests
+```bash
+poetry run python manage.py test
+```

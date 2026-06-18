@@ -6,7 +6,7 @@ class Usuario(models.Model):
     nombre = models.CharField(max_length=255)
     apellido = models.CharField(max_length=255)
     fecha_nacimiento = models.DateField()
-    direccion = models.EmailField(null=True, blank=True)
+    direccion = models.CharField(max_length=255, null=True, blank=True)
     telefono = models.CharField(max_length=15, null=True, blank=True)
     correo = models.CharField(max_length=255)
     
@@ -75,7 +75,7 @@ class Consultorio(models.Model):
     tipo      = models.CharField(max_length=255)
     ambito    = models.CharField(max_length=255)
     urgencia  = models.CharField(max_length=3)
-    certifica = models.CharField(max_length=3)
+    certifica = models.CharField(max_length=255)
     depen_a   = models.CharField(max_length=255)
     nivel     = models.CharField(max_length=255)
     via       = models.CharField(max_length=255)

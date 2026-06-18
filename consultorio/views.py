@@ -3,10 +3,13 @@ from datetime import datetime, date, timedelta
 from django.shortcuts import render, redirect
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.db import IntegrityError
 from django.db.models import Min
+from django.urls import reverse
 from django.utils import timezone
 
-from .models import Consultorio, Reserva, Usuario, Paciente, Profesional, Disponibilidad
+from .models import Consultorio, Reserva, Usuario, Paciente, Profesional, Disponibilidad, Administrador
 
 # ---------------------------------------------------------------------------
 # NOTAS DE DESARROLLO — restricciones pendientes de producción
@@ -102,8 +105,13 @@ def historial_paciente(request):
     paciente_id    = request.GET.get('paciente_id')
     consultorio_id = request.GET.get('consultorio_id')
 
-    # Solo doctores pueden consultar esto
-    if not Profesional.objects.filter(usuario__rut=request.user.username).exists():
+    # Doctores y administradores pueden consultar esto.
+    rut = request.user.username
+    autorizado = (
+        Profesional.objects.filter(usuario__rut=rut).exists()
+        or Administrador.objects.filter(usuario__rut=rut).exists()
+    )
+    if not autorizado:
         return JsonResponse({'error': 'No autorizado'}, status=403)
 
     try:
@@ -293,14 +301,6 @@ def mis_horas(request: HttpRequest):
     )
 
 @login_required(login_url='/login/')
-def reservar_hora(request: HttpRequest):
-    return render(
-        request = request, 
-        template_name = "reservar_hora.html", 
-        context = {"title": "Reservar hora"}
-    )
-
-@login_required(login_url='/login/')
 def cancelar_hora(request: HttpRequest):
     import random
 
@@ -388,3 +388,126 @@ def cancelar_hora(request: HttpRequest):
         'codigo_generado'     : codigo_generado,
         'codigo_incorrecto'   : codigo_incorrecto,
     })
+
+
+# ── Acciones del doctor sobre una reserva ────────────────────────────
+ESTADOS_PERMITIDOS_DOCTOR = {'confirmada', 'completada', 'no_asistio', 'seguimiento'}
+
+
+@login_required(login_url='/login/')
+def actualizar_reserva(request: HttpRequest):
+    if request.method != 'POST':
+        return HttpResponse('Método no permitido', status=405)
+
+    # Solo profesionales pueden actualizar el estado de una reserva.
+    profesional = Profesional.objects.filter(usuario__rut=request.user.username).first()
+    if profesional is None:
+        return HttpResponse('No autorizado', status=403)
+
+    reserva_id   = request.POST.get('reserva_id')
+    nuevo_estado = request.POST.get('nuevo_estado')
+    notas_doctor = request.POST.get('notas_doctor')
+
+    if nuevo_estado not in ESTADOS_PERMITIDOS_DOCTOR:
+        return HttpResponse('Estado no permitido', status=400)
+
+    # La reserva debe pertenecer a este profesional.
+    reserva = Reserva.objects.filter(id=reserva_id, profesional=profesional).first()
+    if reserva is None:
+        return HttpResponse('Reserva no encontrada', status=404)
+
+    campos = ['estado']
+    reserva.estado = nuevo_estado
+    if notas_doctor is not None:
+        reserva.notas_doctor = notas_doctor.strip() or None
+        campos.append('notas_doctor')
+
+    # Para seguimiento, guardar la fecha indicada en el modal.
+    if nuevo_estado == 'seguimiento':
+        fecha_seg = request.POST.get('fecha_seguimiento')
+        if fecha_seg:
+            try:
+                reserva.fecha_seguimiento = datetime.strptime(fecha_seg, "%Y-%m-%d").date()
+                campos.append('fecha_seguimiento')
+            except ValueError:
+                pass
+
+    reserva.save(update_fields=campos)
+
+    return redirect('principal:panel_doctor')
+
+
+# ── Gestión del profesional: disponibilidad y consultorio ────────────
+def _profesional_actual(request):
+    return Profesional.objects.filter(usuario__rut=request.user.username).first()
+
+
+@login_required(login_url='/login/')
+def agregar_disponibilidad(request: HttpRequest):
+    if request.method != 'POST':
+        return HttpResponse('Método no permitido', status=405)
+
+    profesional = _profesional_actual(request)
+    if profesional is None:
+        return HttpResponse('No autorizado', status=403)
+
+    destino = reverse('principal:panel_doctor') + '?tab=gestionar'
+
+    try:
+        fecha       = datetime.strptime(request.POST.get('fecha', ''), "%Y-%m-%d").date()
+        hora_inicio = datetime.strptime(request.POST.get('hora_inicio', ''), "%H:%M").time()
+        hora_fin    = datetime.strptime(request.POST.get('hora_fin', ''), "%H:%M").time()
+    except (TypeError, ValueError):
+        messages.error(request, "Datos de disponibilidad inválidos.")
+        return redirect(destino)
+
+    if fecha < timezone.localdate():
+        messages.error(request, "La fecha no puede ser anterior a hoy.")
+        return redirect(destino)
+
+    if hora_fin <= hora_inicio:
+        messages.error(request, "La hora de fin debe ser mayor que la de inicio.")
+        return redirect(destino)
+
+    try:
+        Disponibilidad.objects.create(
+            profesional=profesional,
+            fecha=fecha,
+            hora_inicio=hora_inicio,
+            hora_fin=hora_fin,
+        )
+        messages.success(
+            request,
+            f"Disponibilidad agregada para el {fecha.strftime('%d/%m/%Y')} "
+            f"de {hora_inicio.strftime('%H:%M')} a {hora_fin.strftime('%H:%M')}."
+        )
+    except IntegrityError:
+        messages.error(
+            request,
+            "Ya tienes una disponibilidad registrada para esa fecha y hora de inicio."
+        )
+
+    return redirect(destino)
+
+
+@login_required(login_url='/login/')
+def cambiar_consultorio(request: HttpRequest):
+    if request.method != 'POST':
+        return HttpResponse('Método no permitido', status=405)
+
+    profesional = _profesional_actual(request)
+    if profesional is None:
+        return HttpResponse('No autorizado', status=403)
+
+    destino = reverse('principal:panel_doctor') + '?tab=gestionar'
+
+    consultorio = Consultorio.objects.filter(objectid=request.POST.get('consultorio_id')).first()
+    if consultorio is None:
+        messages.error(request, "Debes seleccionar un consultorio válido.")
+        return redirect(destino)
+
+    profesional.consultorio = consultorio
+    profesional.save(update_fields=['consultorio'])
+    messages.success(request, f"Recinto actualizado a {consultorio.nombre}.")
+
+    return redirect(destino)

@@ -1,3 +1,6 @@
+> Última actualización: junio 2026
+> Ver README.md para instrucciones completas de arranque.
+
 ## BUILD
 
 Before running setup, **install pyenv and Poetry to manage the Python version and dependencies**. **See the next sections for more information**.
@@ -197,4 +200,33 @@ Then, load the data to the database with the following command:
 
 ```bash
 poetry run python manage.py loaddata utils/data/geodata.json
+```
+
+## Levantar con Docker
+
+### Primera vez
+
+```bash
+cp .env.docker .env
+docker compose up --build
+```
+
+### Cargar datos y crear admin (en otra terminal, una vez que el servidor esté corriendo)
+
+```bash
+docker compose exec web python manage.py cargar_consultorios
+docker compose exec web python manage.py crear_admin \
+  --rut 12345678-9 --password admin123 \
+  --nombre Admin --apellido Sistema \
+  --email admin@consultorio.cl
+```
+
+### Comandos útiles
+
+```bash
+docker compose up            # levantar sin rebuild
+docker compose down          # bajar
+docker compose down -v       # bajar y borrar volumen de BD
+docker compose logs web      # ver logs del servidor
+docker compose logs -f web   # logs en tiempo real
 ```
