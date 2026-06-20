@@ -25,15 +25,28 @@ de atención primaria en Chile. Proyecto académico ICI-513, UV.
 - Disponibilidad → FK Profesional (unique: profesional+fecha+hora_inicio)
 
 ## Roles y acceso
-- Administrador: is_staff=True, redirige a principal:panel_admin
+- Administrador: is_staff=True (NO superuser), redirige a principal:panel_admin
 - Profesional: redirige a principal:panel_doctor
 - Paciente: redirige a principal:principal (home)
 - La detección de rol ocurre en principal/views.py home()
+- El admin pertenece al grupo "Administradores" (permisos acotados):
+  CRUD de modelos de dominio + ver/editar auth.User. Da acceso al /admin/
+  de Django sin ser superusuario. Se asigna en crear_admin.
+
+## Capacidades del administrador
+- Panel custom (/panel_admin/), acciones en principal/views.py:
+  - admin_actualizar_reserva: cambia estado de cualquier reserva (POST,
+    _es_admin, 403/404/400). Si estado='cancelada' guarda motivo.
+  - admin_toggle_cuenta: activa/desactiva auth.User por RUT. No permite
+    que el admin se desactive a sí mismo.
+  - admin_exportar_reservas: exporta TODAS las reservas a CSV (BOM UTF-8).
+- Django /admin/: CRUD acotado vía grupo de permisos (enlace en el panel).
 
 ## Comandos de gestión
 - cargar_consultorios: carga utils/data/geodata.json en BD
 - poblar_datos: seed idempotente (6 prof en Viña, 10 pac, 20 reservas)
-- crear_admin: crea/actualiza admin (idempotente, corre en cada up)
+- crear_admin: crea/actualiza admin (idempotente, corre en cada up);
+  también configura el grupo "Administradores" y se lo asigna al usuario
 
 ## Arranque Docker
 cp .env.docker .env && docker compose up --build
@@ -87,8 +100,8 @@ docker compose exec web python manage.py poblar_datos
 ### Stack de tests
 - pytest + pytest-django + pytest-cov (instalados en grupo dev)
 - Tests unittest legacy en cada app (tests.py): ~79 tests
-- Tests pytest nuevos en tests/: 17 tests
-- Total: 96 tests, 77% cobertura global
+- Tests pytest nuevos en tests/: 31 tests (incluye tests/test_admin_acciones.py)
+- Total: 110 tests, 81% cobertura global
 
 ### Correr tests
 poetry run pytest -v
@@ -107,7 +120,8 @@ poetry run pytest --cov=principal --cov=registro --cov=consultorio --cov-report=
 - registro/forms.py: 95%
 - registro/views.py: 93%
 - consultorio/views.py: 64% (endpoints AJAX nuevos sin cubrir)
-- principal/views.py: 58% (panel_doctor/panel_admin sin render completo)
+- principal/views.py: 75% (acciones admin testeadas; falta render
+  completo de panel_doctor/panel_admin)
 
 ### Deuda de tests conocida
 - panel_doctor y panel_admin: solo se testea control de acceso,

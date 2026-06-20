@@ -2,6 +2,8 @@
 from django.shortcuts import render, redirect
 from django.http import HttpRequest, HttpResponse
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
+from django.contrib import messages
 from django.db.models import Q, Count, Min
 from django.utils import timezone
 from consultorio.models import Reserva, Profesional, Administrador, Paciente, Disponibilidad, Consultorio
@@ -183,7 +185,7 @@ def panel_admin(request: HttpRequest):
     )
 
     # Profesionales por consultorio, con conteo de citas activas.
-    profesionales = (
+    profesionales = list(
         Profesional.objects
         .select_related('usuario', 'consultorio')
         .annotate(
@@ -195,6 +197,15 @@ def panel_admin(request: HttpRequest):
         .order_by('consultorio__nombre', 'usuario__apellido')
     )
 
+    # Estado de la cuenta auth.User de cada profesional (vinculada por RUT).
+    ruts_activos = set(
+        User.objects
+        .filter(username__in=[p.usuario.rut for p in profesionales], is_active=True)
+        .values_list('username', flat=True)
+    )
+    for p in profesionales:
+        p.cuenta_activa = p.usuario.rut in ruts_activos
+
     return render(
         request=request,
         template_name="panel_admin.html",
@@ -205,5 +216,120 @@ def panel_admin(request: HttpRequest):
             "total_profesionales": total_profesionales,
             "ultimas_reservas"   : ultimas_reservas,
             "profesionales"      : profesionales,
+            "estado_choices"     : Reserva.ESTADO_CHOICES,
         }
     )
+
+
+# ── Acciones del administrador ───────────────────────────────────────
+def _es_admin(request: HttpRequest) -> bool:
+    return Administrador.objects.filter(usuario__rut=request.user.username).exists()
+
+
+# Estados que el admin puede asignar a cualquier reserva.
+ESTADOS_ADMIN = {c[0] for c in Reserva.ESTADO_CHOICES}
+
+
+@login_required(login_url='/login/')
+def admin_actualizar_reserva(request: HttpRequest):
+    """El admin cambia el estado de cualquier reserva (incluye cancelarla)."""
+    if request.method != 'POST':
+        return HttpResponse('Método no permitido', status=405)
+    if not _es_admin(request):
+        return HttpResponse('No autorizado', status=403)
+
+    reserva = Reserva.objects.filter(id=request.POST.get('reserva_id')).first()
+    if reserva is None:
+        return HttpResponse('Reserva no encontrada', status=404)
+
+    nuevo_estado = request.POST.get('nuevo_estado')
+    if nuevo_estado not in ESTADOS_ADMIN:
+        return HttpResponse('Estado no permitido', status=400)
+
+    reserva.estado = nuevo_estado
+    campos = ['estado']
+    if nuevo_estado == 'cancelada':
+        motivo = request.POST.get('motivo_cancelacion', '').strip()
+        reserva.motivo_cancelacion = motivo or 'Cancelada por administración'
+        campos.append('motivo_cancelacion')
+    reserva.save(update_fields=campos)
+
+    messages.success(
+        request,
+        f'Reserva #{reserva.id} actualizada a "{reserva.get_estado_display()}".'
+    )
+    return redirect('principal:panel_admin')
+
+
+@login_required(login_url='/login/')
+def admin_toggle_cuenta(request: HttpRequest):
+    """El admin activa o desactiva una cuenta (bloquea/permite el login)."""
+    if request.method != 'POST':
+        return HttpResponse('Método no permitido', status=405)
+    if not _es_admin(request):
+        return HttpResponse('No autorizado', status=403)
+
+    rut = (request.POST.get('rut') or '').strip()
+
+    # Salvaguarda: el admin no puede desactivar su propia cuenta.
+    if rut == request.user.username:
+        messages.error(request, 'No puedes desactivar tu propia cuenta.')
+        return redirect('principal:panel_admin')
+
+    user = User.objects.filter(username=rut).first()
+    if user is None:
+        messages.error(request, 'Cuenta no encontrada.')
+        return redirect('principal:panel_admin')
+
+    user.is_active = not user.is_active
+    user.save(update_fields=['is_active'])
+    messages.success(
+        request,
+        f'Cuenta {rut} {"activada" if user.is_active else "desactivada"}.'
+    )
+    return redirect('principal:panel_admin')
+
+
+@login_required(login_url='/login/')
+def admin_exportar_reservas(request: HttpRequest):
+    """Exporta TODAS las reservas a CSV (no solo las 20 que muestra el panel)."""
+    import csv
+
+    if not _es_admin(request):
+        return HttpResponse('No autorizado', status=403)
+
+    hoy = timezone.localdate().strftime('%Y%m%d')
+    response = HttpResponse(content_type='text/csv; charset=utf-8')
+    response['Content-Disposition'] = f'attachment; filename="reservas_{hoy}.csv"'
+    # BOM para que Excel reconozca UTF-8 (acentos del español).
+    response.write('﻿')
+
+    writer = csv.writer(response)
+    writer.writerow([
+        'ID', 'Paciente', 'RUT paciente', 'Profesional',
+        'Consultorio', 'Comuna', 'Fecha', 'Hora', 'Estado', 'Motivo',
+    ])
+
+    reservas = (
+        Reserva.objects
+        .select_related('paciente__usuario', 'profesional__usuario', 'consultorio')
+        .order_by('-fecha_reserva')
+    )
+    for r in reservas:
+        fecha_local = timezone.localtime(r.fecha_reserva)
+        pac = r.paciente.usuario
+        prof = r.profesional.usuario if r.profesional else None
+        writer.writerow([
+            r.id,
+            f'{pac.nombre} {pac.apellido}',
+            pac.rut,
+            f'{prof.nombre} {prof.apellido}' if prof else '',
+            r.consultorio.nombre,
+            r.consultorio.nom_com,
+            fecha_local.strftime('%d/%m/%Y'),
+            fecha_local.strftime('%H:%M'),
+            r.get_estado_display(),
+            r.motivo,
+        ])
+
+    return response

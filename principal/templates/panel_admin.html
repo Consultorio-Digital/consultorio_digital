@@ -18,7 +18,22 @@
 {% block content %}
   <div class="container-xl py-3">
 
-    <h1 class="h3 mb-4">Panel del administrador</h1>
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+      <h1 class="h3 mb-0">Panel del administrador</h1>
+      <a href="{% url 'admin:index' %}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-gear me-1"></i>Administración avanzada
+      </a>
+    </div>
+
+    {# ── Mensajes (éxito / error) ── #}
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
 
     {# ── Tarjetas de estadísticas ── #}
     <div class="row g-3 mb-4">
@@ -74,7 +89,13 @@
     {# ── Últimas 20 reservas ── #}
     <div class="card shadow-sm" id="tabla-reservas">
       <div class="card-body">
-        <h2 class="h5 mb-3">Últimas 20 reservas</h2>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h2 class="h5 mb-0">Últimas 20 reservas</h2>
+          <a href="{% url 'principal:admin_exportar_reservas' %}"
+             class="btn btn-sm btn-outline-success">
+            <i class="bi bi-download me-1"></i>Exportar todas (CSV)
+          </a>
+        </div>
 
         {# ── Barra de filtros (client-side) ── #}
         <div class="row g-2 mb-3">
@@ -114,6 +135,7 @@
                 <th scope="col">Consultorio</th>
                 <th scope="col">Fecha</th>
                 <th scope="col">Estado</th>
+                <th scope="col" class="text-end">Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -141,10 +163,20 @@
                   <td>{{ reserva.consultorio.nombre }}</td>
                   <td>{{ reserva.fecha_reserva|date:"d/m/Y H:i" }}</td>
                   <td>{% include "_badge_estado.html" with estado=reserva.estado %}</td>
+                  <td class="text-end">
+                    <button type="button"
+                            class="btn btn-sm btn-outline-primary editar-reserva"
+                            data-bs-toggle="modal" data-bs-target="#modalAdminReserva"
+                            data-reserva-id="{{ reserva.id }}"
+                            data-estado="{{ reserva.estado }}"
+                            data-paciente="{{ reserva.paciente.usuario.nombre }} {{ reserva.paciente.usuario.apellido }}">
+                      <i class="bi bi-pencil-square me-1"></i>Estado
+                    </button>
+                  </td>
                 </tr>
               {% empty %}
                 <tr>
-                  <td colspan="5" class="text-center text-muted py-3">No hay reservas.</td>
+                  <td colspan="6" class="text-center text-muted py-3">No hay reservas.</td>
                 </tr>
               {% endfor %}
             </tbody>
@@ -166,6 +198,8 @@
                 <th scope="col">Profesional</th>
                 <th scope="col">Especialidad</th>
                 <th scope="col">Citas activas</th>
+                <th scope="col">Cuenta</th>
+                <th scope="col" class="text-end">Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -176,10 +210,33 @@
                   <td>{{ prof.usuario.nombre }} {{ prof.usuario.apellido }}</td>
                   <td>{{ prof.especialidad }}</td>
                   <td><span class="badge text-bg-primary">{{ prof.citas_activas }}</span></td>
+                  <td>
+                    {% if prof.cuenta_activa %}
+                      <span class="badge bg-confirmado">Activa</span>
+                    {% else %}
+                      <span class="badge bg-secondary">Inactiva</span>
+                    {% endif %}
+                  </td>
+                  <td class="text-end">
+                    <form method="post" action="{% url 'principal:admin_toggle_cuenta' %}" class="d-inline">
+                      {% csrf_token %}
+                      <input type="hidden" name="rut" value="{{ prof.usuario.rut }}">
+                      {% if prof.cuenta_activa %}
+                        <button type="submit" class="btn btn-sm btn-outline-danger"
+                                onclick="return confirm('¿Desactivar la cuenta de {{ prof.usuario.nombre }} {{ prof.usuario.apellido }}? No podrá iniciar sesión.');">
+                          <i class="bi bi-lock me-1"></i>Desactivar
+                        </button>
+                      {% else %}
+                        <button type="submit" class="btn btn-sm btn-outline-success">
+                          <i class="bi bi-unlock me-1"></i>Activar
+                        </button>
+                      {% endif %}
+                    </form>
+                  </td>
                 </tr>
               {% empty %}
                 <tr>
-                  <td colspan="5" class="text-center text-muted py-3">No hay profesionales registrados.</td>
+                  <td colspan="7" class="text-center text-muted py-3">No hay profesionales registrados.</td>
                 </tr>
               {% endfor %}
             </tbody>
@@ -190,6 +247,42 @@
 
     {# ── Modal: Historial del paciente ── #}
     {% include "_modal_historial.html" %}
+
+    {# ── Modal: cambiar estado de una reserva (admin) ── #}
+    <div class="modal fade" id="modalAdminReserva" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog">
+        <form method="post" action="{% url 'principal:admin_actualizar_reserva' %}" class="modal-content">
+          {% csrf_token %}
+          <div class="modal-header">
+            <h2 class="modal-title h5">Cambiar estado de la reserva</h2>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+          </div>
+          <div class="modal-body">
+            <input type="hidden" name="reserva_id" id="adminres-id">
+            <p class="text-muted small mb-3">
+              Paciente: <strong id="adminres-paciente"></strong>
+            </p>
+            <div class="mb-3">
+              <label class="form-label" for="adminres-estado">Nuevo estado</label>
+              <select class="form-select" name="nuevo_estado" id="adminres-estado" required>
+                {% for valor, etiqueta in estado_choices %}
+                  <option value="{{ valor }}">{{ etiqueta }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="mb-3 d-none" id="adminres-motivo-wrap">
+              <label class="form-label" for="adminres-motivo">Motivo de cancelación</label>
+              <textarea class="form-control" name="motivo_cancelacion" id="adminres-motivo" rows="2"
+                        placeholder="Opcional"></textarea>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Guardar cambios</button>
+          </div>
+        </form>
+      </div>
+    </div>
 
   </div>
 {% endblock %}
@@ -244,6 +337,29 @@ document.addEventListener('DOMContentLoaded', function () {
       if (tabla) tabla.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
   });
+
+  // ── Modal: cambiar estado de una reserva ──
+  const modalRes   = document.getElementById('modalAdminReserva');
+  const selEstado  = document.getElementById('adminres-estado');
+  const motivoWrap = document.getElementById('adminres-motivo-wrap');
+
+  function toggleMotivo() {
+    if (motivoWrap && selEstado) {
+      motivoWrap.classList.toggle('d-none', selEstado.value !== 'cancelada');
+    }
+  }
+
+  if (modalRes) {
+    modalRes.addEventListener('show.bs.modal', function (event) {
+      const btn = event.relatedTarget;
+      if (!btn) return;
+      document.getElementById('adminres-id').value = btn.dataset.reservaId || '';
+      document.getElementById('adminres-paciente').textContent = btn.dataset.paciente || '';
+      if (selEstado) selEstado.value = btn.dataset.estado || 'pendiente';
+      toggleMotivo();
+    });
+  }
+  if (selEstado) selEstado.addEventListener('change', toggleMotivo);
 });
 </script>
 {% endblock %}

@@ -18,6 +18,13 @@ Ingeniería Civil en Informática — Universidad de Valparaíso.
 | Profesional | /panel_doctor/ | 11111111-1 / prof123 |
 | Paciente | / | Registrarse en /registro/ |
 
+### Capacidades del administrador
+- Gestiona el estado de cualquier reserva (cambiar / cancelar con motivo).
+- Activa o desactiva cuentas de profesionales (bloquea el inicio de sesión).
+- Exporta todas las reservas a CSV.
+- Accede al admin de Django (`/admin/`) con permisos acotados mediante el
+  grupo "Administradores" (sin ser superusuario), asignado por `crear_admin`.
+
 ## Levantar con Docker (recomendado)
 ```bash
 cp .env.docker .env
@@ -61,8 +68,8 @@ poetry run pytest --cov=principal --cov=registro --cov=consultorio \
 ```
 
 ### Resultado actual
-- 96 tests en verde (79 unittest + 17 pytest)
-- Cobertura global: 77%
+- 110 tests en verde (79 unittest + 31 pytest)
+- Cobertura global: 81%
 - registro/backends.py: 100%
 - consultorio/models.py: 98%
 - registro/forms.py: 95%

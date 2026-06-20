@@ -263,7 +263,31 @@
           {# ── Tab 4: Historial ── #}
           <div class="tab-pane fade" id="pane-historial" role="tabpanel">
             {% if historial %}
-              <table class="table table-hover align-middle mb-0">
+              {# Filtros de cliente: por nombre de paciente y por estado. #}
+              <div class="row g-2 mb-3 align-items-center" id="historial-filtros">
+                <div class="col-sm-6 col-md-5">
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input type="text" class="form-control" id="hist-buscar"
+                           placeholder="Buscar paciente..." autocomplete="off">
+                  </div>
+                </div>
+                <div class="col-sm-4 col-md-3">
+                  <select class="form-select" id="hist-estado">
+                    <option value="">Todos los estados</option>
+                    <option value="pendiente">Pendiente</option>
+                    <option value="confirmada">Confirmada</option>
+                    <option value="completada">Completada</option>
+                    <option value="seguimiento">Seguimiento</option>
+                    <option value="cancelada">Cancelada</option>
+                    <option value="no_asistio">No asistió</option>
+                  </select>
+                </div>
+                <div class="col-sm-2 col-md-4 text-sm-end">
+                  <small class="text-muted" id="hist-contador"></small>
+                </div>
+              </div>
+              <table class="table table-hover align-middle mb-0" id="tabla-historial">
                 <thead>
                   <tr>
                     <th scope="col">Paciente</th>
@@ -275,7 +299,9 @@
                 </thead>
                 <tbody>
                   {% for r in historial %}
-                    <tr>
+                    <tr class="hist-fila"
+                        data-nombre="{{ r.paciente.usuario.nombre }} {{ r.paciente.usuario.apellido }}"
+                        data-estado="{{ r.estado }}">
                       <td>
                         <button type="button"
                                 class="btn btn-link p-0 text-decoration-none fw-semibold paciente-link"
@@ -293,6 +319,12 @@
                       <td>{% include "_badge_estado.html" with estado=r.estado %}</td>
                     </tr>
                   {% endfor %}
+                  <tr id="hist-sin-resultados" class="d-none">
+                    <td colspan="5" class="text-center text-muted py-4">
+                      <i class="bi bi-search me-1"></i>
+                      No hay citas que coincidan con el filtro
+                    </td>
+                  </tr>
                 </tbody>
               </table>
             {% else %}
@@ -545,6 +577,36 @@ document.addEventListener('DOMContentLoaded', function () {
     gConsul.addEventListener('change', function () {
       if (gBtn) gBtn.disabled = !this.value;
     });
+  }
+
+  // ── Filtro del historial: por nombre de paciente y por estado ──
+  const histBuscar = document.getElementById('hist-buscar');
+  const histEstado = document.getElementById('hist-estado');
+  if (histBuscar && histEstado) {
+    const filas         = Array.from(document.querySelectorAll('#tabla-historial .hist-fila'));
+    const sinResultados = document.getElementById('hist-sin-resultados');
+    const contador      = document.getElementById('hist-contador');
+
+    function filtrarHistorial() {
+      const texto  = histBuscar.value.trim().toLowerCase();
+      const estado = histEstado.value;
+      let visibles = 0;
+
+      filas.forEach(function (fila) {
+        const nombre = (fila.dataset.nombre || '').toLowerCase();
+        const mostrar = (!texto  || nombre.includes(texto))
+                     && (!estado || fila.dataset.estado === estado);
+        fila.classList.toggle('d-none', !mostrar);
+        if (mostrar) visibles++;
+      });
+
+      if (sinResultados) sinResultados.classList.toggle('d-none', visibles !== 0);
+      if (contador) contador.textContent = visibles + ' de ' + filas.length;
+    }
+
+    histBuscar.addEventListener('input', filtrarHistorial);
+    histEstado.addEventListener('change', filtrarHistorial);
+    filtrarHistorial();
   }
 
 });
