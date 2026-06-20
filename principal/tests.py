@@ -14,15 +14,17 @@ class PrincipalViewTests(TestCase):
             last_name  = "Soto",
         )
 
-    def test_landing_retorna_200_sin_login(self):
+    def test_landing_redirige_sin_login(self):
+        # Un usuario anonimo en / es redirigido al login (302), comportamiento
+        # intencional: el home solo se muestra a usuarios autenticados.
         response = self.client.get(reverse("principal:principal"))
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 302)
 
-    def test_landing_contiene_opciones_de_acceso(self):
+    def test_landing_redirige_a_login(self):
+        # El redirect debe apuntar a la pagina de login.
         response = self.client.get(reverse("principal:principal"))
-        content  = response.content.decode()
-        # Debe invitar a iniciar sesion o crear cuenta
-        self.assertIn("Iniciar sesi", content)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], reverse("login"))
 
     def test_inicio_autenticado_retorna_200(self):
         self.client.login(username="222222226", password="clave_prueba_2026")
