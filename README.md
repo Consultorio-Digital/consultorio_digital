@@ -47,6 +47,33 @@ poetry run python manage.py runserver
 | poblar_datos | Genera 6 profesionales, 10 pacientes, 20 reservas de prueba en Viña del Mar |
 | crear_admin | Crea o actualiza el administrador del sistema |
 
+## Tests y Cobertura
+
+### Correr todos los tests
+```bash
+poetry run pytest -v
+```
+
+### Correr con reporte de cobertura
+```bash
+poetry run pytest --cov=principal --cov=registro --cov=consultorio \
+  --cov-report=term-missing
+```
+
+### Resultado actual
+- 96 tests en verde (79 unittest + 17 pytest)
+- Cobertura global: 77%
+- registro/backends.py: 100%
+- consultorio/models.py: 98%
+- registro/forms.py: 95%
+
+### Herramientas de testing
+| Herramienta | Versión | Uso |
+|-------------|---------|-----|
+| pytest | 9.1 | Ejecución de tests |
+| pytest-django | 4.12 | Integración con Django |
+| pytest-cov | 7.1 | Reporte de cobertura |
+
 ## Estructura del proyecto
 ```
 GPI/
@@ -66,6 +93,4 @@ GPI/
 Ver .env.example para la lista completa de variables requeridas.
 
 ## Tests
-```bash
-poetry run python manage.py test
-```
+Ver la sección [Tests y Cobertura](#tests-y-cobertura).

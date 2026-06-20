@@ -81,3 +81,36 @@ docker compose exec web python manage.py poblar_datos
 - María González tiene RUT matemáticamente inválido (99999999-9)
 - mis_horas.css es CSS muerto (ningún template lo enlaza)
 - queries/data.json (~29MB) versionado innecesariamente
+
+## Testing
+
+### Stack de tests
+- pytest + pytest-django + pytest-cov (instalados en grupo dev)
+- Tests unittest legacy en cada app (tests.py): ~79 tests
+- Tests pytest nuevos en tests/: 17 tests
+- Total: 96 tests, 77% cobertura global
+
+### Correr tests
+poetry run pytest -v
+poetry run pytest --cov=principal --cov=registro --cov=consultorio --cov-report=term-missing
+
+### Fixtures disponibles (tests/conftest.py)
+- cliente: django.test.Client()
+- admin_user: RUT 12345678-9, is_staff=True
+- profesional_user: RUT 11111111-1, Medicina General
+- paciente_user: RUT 66666666-6
+- consultorio: objectid=9999, Viña del Mar
+
+### Cobertura por módulo
+- registro/backends.py: 100%
+- consultorio/models.py: 98%
+- registro/forms.py: 95%
+- registro/views.py: 93%
+- consultorio/views.py: 64% (endpoints AJAX nuevos sin cubrir)
+- principal/views.py: 58% (panel_doctor/panel_admin sin render completo)
+
+### Deuda de tests conocida
+- panel_doctor y panel_admin: solo se testea control de acceso,
+  no el render completo con datos
+- agregar_disponibilidad y cambiar_consultorio sin tests
+- endpoints AJAX parcialmente cubiertos

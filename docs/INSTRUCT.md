@@ -230,3 +230,18 @@ docker compose down -v       # bajar y borrar volumen de BD
 docker compose logs web      # ver logs del servidor
 docker compose logs -f web   # logs en tiempo real
 ```
+
+## Correr tests
+
+### Suite completa
+poetry run pytest -v
+
+### Con cobertura
+poetry run pytest --cov=principal --cov=registro --cov=consultorio \
+  --cov-report=term-missing --cov-report=html:htmlcov
+
+### Solo tests nuevos (pytest)
+poetry run pytest tests/ -v
+
+### Solo tests legacy (unittest)
+poetry run pytest consultorio/tests.py registro/tests.py principal/tests.py -v
