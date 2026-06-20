@@ -1,0 +1,155 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.4, pytest-9.1.1, pluggy-1.6.0 -- /home/ricardo/.cache/pypoetry/virtualenvs/salud-publica-digital-wc_kENPu-py3.12/bin/python
+cachedir: .pytest_cache
+django: version: 5.1, settings: salud_publica_digital.settings (from ini)
+rootdir: /home/ricardo/GPI
+configfile: pytest.ini
+plugins: django-4.12.0, cov-7.1.0
+collecting ... collected 96 items
+
+consultorio/tests.py::ConsultorioModelTests::test_fono_puede_ser_nulo PASSED [  1%]
+consultorio/tests.py::ConsultorioModelTests::test_ordering_alfabetico_por_nombre PASSED [  2%]
+consultorio/tests.py::ConsultorioModelTests::test_primary_key_es_objectid PASSED [  3%]
+consultorio/tests.py::ConsultorioModelTests::test_str_retorna_nombre PASSED [  4%]
+consultorio/tests.py::UsuarioModelTests::test_primary_key_es_rut PASSED  [  5%]
+consultorio/tests.py::UsuarioModelTests::test_str_retorna_rut PASSED     [  6%]
+consultorio/tests.py::UsuarioModelTests::test_telefono_puede_ser_nulo PASSED [  7%]
+consultorio/tests.py::ReservaModelTests::test_estado_por_defecto_es_pendiente PASSED [  8%]
+consultorio/tests.py::ReservaModelTests::test_estados_disponibles PASSED [  9%]
+consultorio/tests.py::ReservaModelTests::test_fecha_seguimiento_puede_ser_nula PASSED [ 10%]
+consultorio/tests.py::ReservaModelTests::test_motivo_cancelacion_puede_ser_nulo PASSED [ 11%]
+consultorio/tests.py::ReservaModelTests::test_notas_doctor_puede_ser_nulo PASSED [ 12%]
+consultorio/tests.py::ReservaModelTests::test_puede_cambiar_estado_a_cancelada PASSED [ 13%]
+consultorio/tests.py::ReservaModelTests::test_str_contiene_nombre_consultorio_y_paciente PASSED [ 14%]
+consultorio/tests.py::ProfesionalModelTests::test_consultorio_puede_ser_nulo PASSED [ 15%]
+consultorio/tests.py::ProfesionalModelTests::test_str_retorna_rut_del_usuario PASSED [ 16%]
+consultorio/tests.py::DisponibilidadModelTests::test_ordering_por_fecha_luego_hora_inicio PASSED [ 17%]
+consultorio/tests.py::DisponibilidadModelTests::test_str_contiene_profesional_y_fecha PASSED [ 18%]
+consultorio/tests.py::DisponibilidadModelTests::test_unique_together_profesional_fecha_hora_inicio PASSED [ 19%]
+consultorio/tests.py::ConsultorioViewAuthTests::test_cancelar_hora_redirige_sin_login PASSED [ 20%]
+consultorio/tests.py::ConsultorioViewAuthTests::test_historial_paciente_redirige_sin_login PASSED [ 21%]
+consultorio/tests.py::ConsultorioViewAuthTests::test_mis_horas_redirige_sin_login PASSED [ 22%]
+consultorio/tests.py::ConsultorioViewAuthTests::test_seleccionar_region_redirige_sin_login PASSED [ 23%]
+consultorio/tests.py::ConsultorioViewGetTests::test_cancelar_hora_retorna_200 PASSED [ 25%]
+consultorio/tests.py::ConsultorioViewGetTests::test_mis_horas_retorna_200 PASSED [ 26%]
+consultorio/tests.py::ConsultorioViewGetTests::test_obtener_comunas_sin_region_retorna_lista_vacia PASSED [ 27%]
+consultorio/tests.py::ConsultorioViewGetTests::test_obtener_consultorios_sin_resultados_retorna_lista_vacia PASSED [ 28%]
+consultorio/tests.py::ConsultorioViewGetTests::test_obtener_doctores_sin_consultorio_retorna_lista_vacia PASSED [ 29%]
+consultorio/tests.py::ConsultorioViewGetTests::test_obtener_fechas_sin_profesional_retorna_lista_vacia PASSED [ 30%]
+consultorio/tests.py::ConsultorioViewGetTests::test_obtener_slots_sin_parametros_retorna_lista_vacia PASSED [ 31%]
+consultorio/tests.py::ConsultorioViewGetTests::test_seleccionar_region_retorna_200 PASSED [ 32%]
+consultorio/tests.py::FlujoReservaFuncionalTests::test_obtener_comunas_retorna_com_del_consultorio PASSED [ 33%]
+consultorio/tests.py::FlujoReservaFuncionalTests::test_obtener_consultorios_filtra_por_comuna PASSED [ 34%]
+consultorio/tests.py::FlujoReservaFuncionalTests::test_obtener_doctores_retorna_profesional_del_consultorio PASSED [ 35%]
+consultorio/tests.py::FlujoReservaFuncionalTests::test_obtener_fechas_retorna_dias_con_disponibilidad PASSED [ 36%]
+consultorio/tests.py::FlujoReservaFuncionalTests::test_obtener_slots_genera_bloques_de_30_minutos PASSED [ 37%]
+consultorio/tests.py::FlujoReservaFuncionalTests::test_post_reserva_crea_registro_y_redirige_al_inicio PASSED [ 38%]
+consultorio/tests.py::FlujoReservaFuncionalTests::test_reserva_queda_en_estado_pendiente_por_defecto PASSED [ 39%]
+consultorio/tests.py::FlujoReservaFuncionalTests::test_slot_libre_guarda_ya_tomado_false_en_sesion PASSED [ 40%]
+consultorio/tests.py::FlujoReservaFuncionalTests::test_slot_ocupado_guarda_ya_tomado_en_sesion PASSED [ 41%]
+consultorio/tests.py::FlujoReservaFuncionalTests::test_slot_ocupado_no_genera_reserva_duplicada PASSED [ 42%]
+consultorio/tests.py::CancelacionFuncionalTests::test_cancelacion_con_codigo_correcto_cambia_estado PASSED [ 43%]
+consultorio/tests.py::CancelacionFuncionalTests::test_cancelacion_con_codigo_incorrecto_no_cancela PASSED [ 44%]
+consultorio/tests.py::CancelacionFuncionalTests::test_get_cancelar_hora_retorna_200_con_reservas PASSED [ 45%]
+consultorio/tests.py::CancelacionFuncionalTests::test_seleccionar_reserva_guarda_codigo_en_sesion PASSED [ 46%]
+principal/tests.py::PrincipalViewTests::test_context_reservas_presente_para_usuario_autenticado PASSED [ 47%]
+principal/tests.py::PrincipalViewTests::test_inicio_autenticado_muestra_nombre_usuario PASSED [ 48%]
+principal/tests.py::PrincipalViewTests::test_inicio_autenticado_muestra_tabla_proximas_citas PASSED [ 50%]
+principal/tests.py::PrincipalViewTests::test_inicio_autenticado_retorna_200 PASSED [ 51%]
+principal/tests.py::PrincipalViewTests::test_landing_redirige_a_login PASSED [ 52%]
+principal/tests.py::PrincipalViewTests::test_landing_redirige_sin_login PASSED [ 53%]
+principal/tests.py::PrincipalViewTests::test_reservas_vacias_muestra_mensaje_sin_citas PASSED [ 54%]
+registro/tests.py::ValidateChileanDniTests::test_rut_cadena_vacia_devuelve_false PASSED [ 55%]
+registro/tests.py::ValidateChileanDniTests::test_rut_demasiado_corto_devuelve_false PASSED [ 56%]
+registro/tests.py::ValidateChileanDniTests::test_rut_formato_incorrecto_letras_devuelve_false PASSED [ 57%]
+registro/tests.py::ValidateChileanDniTests::test_rut_invalido_dv_incorrecto PASSED [ 58%]
+registro/tests.py::ValidateChileanDniTests::test_rut_none_devuelve_false PASSED [ 59%]
+registro/tests.py::ValidateChileanDniTests::test_rut_valido_con_puntos_y_guion PASSED [ 60%]
+registro/tests.py::ValidateChileanDniTests::test_rut_valido_dv_k PASSED  [ 61%]
+registro/tests.py::ValidateChileanDniTests::test_rut_valido_dv_k_minuscula PASSED [ 62%]
+registro/tests.py::ValidateChileanDniTests::test_rut_valido_sin_formato PASSED [ 63%]
+registro/tests.py::RemovePointsAndHyphensTests::test_elimina_puntos_y_guion PASSED [ 64%]
+registro/tests.py::RemovePointsAndHyphensTests::test_none_devuelve_cadena_vacia PASSED [ 65%]
+registro/tests.py::RemovePointsAndHyphensTests::test_sin_puntos_ni_guion_sin_cambios PASSED [ 66%]
+registro/tests.py::NormalizeRutTests::test_elimina_puntos_guion_y_espacios PASSED [ 67%]
+registro/tests.py::NormalizeRutTests::test_solo_guion PASSED             [ 68%]
+registro/tests.py::RutOrEmailBackendTests::test_autenticar_por_correo_electronico PASSED [ 69%]
+registro/tests.py::RutOrEmailBackendTests::test_autenticar_por_correo_electronico_case_insensitive PASSED [ 70%]
+registro/tests.py::RutOrEmailBackendTests::test_autenticar_por_rut_con_puntos_y_guion PASSED [ 71%]
+registro/tests.py::RutOrEmailBackendTests::test_autenticar_por_rut_sin_formato PASSED [ 72%]
+registro/tests.py::RutOrEmailBackendTests::test_contrasena_incorrecta_devuelve_none PASSED [ 73%]
+registro/tests.py::RutOrEmailBackendTests::test_sin_credenciales_devuelve_none PASSED [ 75%]
+registro/tests.py::RutOrEmailBackendTests::test_usuario_inactivo_no_puede_autenticar PASSED [ 76%]
+registro/tests.py::RutOrEmailBackendTests::test_usuario_inexistente_devuelve_none PASSED [ 77%]
+registro/tests.py::RegisterFormTests::test_formulario_valido_paciente PASSED [ 78%]
+registro/tests.py::RegisterFormTests::test_passwords_no_coinciden_genera_error PASSED [ 79%]
+registro/tests.py::RegisterFormTests::test_profesional_requiere_especialidad PASSED [ 80%]
+registro/tests.py::RegisterFormTests::test_rut_invalido_genera_error PASSED [ 81%]
+registro/tests.py::RegisterFormTests::test_rut_se_normaliza_al_guardar PASSED [ 82%]
+tests/test_paneles.py::test_home_admin_redirige_panel_admin PASSED       [ 83%]
+tests/test_paneles.py::test_home_profesional_redirige_panel_doctor PASSED [ 84%]
+tests/test_paneles.py::test_home_paciente_muestra_dashboard PASSED       [ 85%]
+tests/test_paneles.py::test_panel_admin_requiere_admin PASSED            [ 86%]
+tests/test_paneles.py::test_panel_doctor_requiere_profesional PASSED     [ 87%]
+tests/test_paneles.py::test_actualizar_reserva_por_doctor PASSED         [ 88%]
+tests/test_paneles.py::test_actualizar_reserva_otro_doctor_prohibido PASSED [ 89%]
+tests/test_registro.py::test_registro_paciente_exitoso PASSED            [ 90%]
+tests/test_registro.py::test_registro_rut_invalido PASSED                [ 91%]
+tests/test_registro.py::test_login_por_rut PASSED                        [ 92%]
+tests/test_registro.py::test_login_por_email PASSED                      [ 93%]
+tests/test_registro.py::test_login_credenciales_incorrectas PASSED       [ 94%]
+tests/test_reservas.py::test_reserva_requiere_login PASSED               [ 95%]
+tests/test_reservas.py::test_crear_reserva_exitosa PASSED                [ 96%]
+tests/test_reservas.py::test_no_doble_reserva_mismo_slot PASSED          [ 97%]
+tests/test_reservas.py::test_cancelar_hora_flujo PASSED                  [ 98%]
+tests/test_reservas.py::test_mis_horas_solo_paciente PASSED              [100%]
+
+================================ tests coverage ================================
+_______________ coverage: platform linux, python 3.12.4-final-0 ________________
+
+Name                                                            Stmts   Miss  Cover   Missing
+---------------------------------------------------------------------------------------------
+consultorio/__init__.py                                             0      0   100%
+consultorio/admin.py                                               27      0   100%
+consultorio/apps.py                                                 4      0   100%
+consultorio/forms.py                                                0      0   100%
+consultorio/management/__init__.py                                  0      0   100%
+consultorio/management/commands/__init__.py                         0      0   100%
+consultorio/management/commands/cargar_consultorios.py             18     18     0%   1-63
+consultorio/management/commands/crear_admin.py                     38     38     0%   1-70
+consultorio/management/commands/poblar_datos.py                   100    100     0%   1-246
+consultorio/migrations/0001_initial.py                              6      0   100%
+consultorio/migrations/0002_reserva_estado.py                       4      0   100%
+consultorio/migrations/0003_doctor_features.py                      5      0   100%
+consultorio/migrations/0004_reserva_seguimiento.py                  4      0   100%
+consultorio/migrations/0005_reserva_motivo_cancelacion.py           4      0   100%
+consultorio/migrations/0006_reserva_notas_doctor.py                 4      0   100%
+consultorio/migrations/0007_reserva_no_asistio.py                   4      0   100%
+consultorio/migrations/0008_alter_usuario_direccion.py              4      0   100%
+consultorio/migrations/0009_alter_consultorio_certifica.py          4      0   100%
+consultorio/migrations/0010_resolver_unique_disponibilidad.py       4      0   100%
+consultorio/migrations/__init__.py                                  0      0   100%
+consultorio/models.py                                             122      2    98%   30, 164
+consultorio/tests.py                                              242      0   100%
+consultorio/urls.py                                                 3      0   100%
+consultorio/views.py                                              236     85    64%   83-84, 105-143, 207-208, 264, 291-292, 323-325, 346-347, 370-371, 377-382, 400, 405, 412, 422-423, 427-433, 442, 447-490, 495-513
+principal/__init__.py                                               0      0   100%
+principal/admin.py                                                  1      0   100%
+principal/apps.py                                                   4      0   100%
+principal/migrations/__init__.py                                    0      0   100%
+principal/models.py                                                 2      0   100%
+principal/tests.py                                                 34      0   100%
+principal/urls.py                                                   4      0   100%
+principal/views.py                                                 52     22    58%   39-40, 68-140, 162, 170-198
+registro/__init__.py                                                0      0   100%
+registro/admin.py                                                   1      0   100%
+registro/apps.py                                                    4      0   100%
+registro/backends.py                                               24      0   100%
+registro/forms.py                                                  96      5    95%   64-70
+registro/migrations/__init__.py                                     0      0   100%
+registro/models.py                                                  1      0   100%
+registro/tests.py                                                  87      0   100%
+registro/views.py                                                  29      2    93%   39, 58
+---------------------------------------------------------------------------------------------
+TOTAL                                                            1172    272    77%
+============================= 96 passed in 18.62s ==============================
