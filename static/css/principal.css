@@ -1,141 +1,49 @@
+/* ═══════════════════════════════════════════════════════════
+   Estilos de vistas (principal, paneles, mis_horas, cancelar,
+   ayuda). Las variables/escala viven en navbar.css.
+   ═══════════════════════════════════════════════════════════ */
+
+/* ═══ LAYOUT BASE ═══ */
 html {
-   min-height: 100%;
+  min-height: 100%;
 }
 
 body {
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-    margin: 0;
-    padding: 0;
-}
-
-.container-fluid {
-    flex: 1; /* Permite que el contenedor llene todo el espacio disponible */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
 }
 
 .navbar {
-    flex-shrink: 0; /* Asegura que el navbar no se reduzca */
+  flex-shrink: 0;
 }
 
-.welcome-txt {
-    color: #1a3a5c;
-    font-size: 2em;
-    text-align: center;
-    margin-top: 2em;
-}
-
-/* ── Bienvenida ── */
-.welcome-txt {
-  font-weight: 100;
-  font-size: 2.2rem;
-}
-
-/* ── Botón nueva cita ── */
-.btn-nueva-cita {
-  border-radius: 7px;
-  font-weight: 300;
-  white-space: nowrap;
-}
-
-/* ── Badges de estado (compartidos con panel_doctor) ── */
-.badge-estado {
-  font-size: 0.72rem;
-  font-weight: 600;
-  padding: 3px 10px;
-  border-radius: 4px;        /* menos redondeado */
-  letter-spacing: 0.3px;
-  text-transform: uppercase;
-  display: inline-block;
-}
-
-.bg-confirmado  { background-color: #1a3a5c !important; color: #fff !important; }
-.bg-pendiente   { background-color: #F6BE4F !important; color: #fff !important; }
-.bg-completada  { background-color: #14AE5C !important; color: #fff !important; }
-.bg-seguimiento { background-color: #9B59B6 !important; color: #fff !important; }
-.bg-cancelada   { background-color: #6c757d !important; color: #fff !important; }
-.bg-no-asistio  { background-color: #E74C3C !important; color: #fff !important; }
-
-/* ── Alineación vertical de celdas en las tablas ── */
+/* ═══ TABLAS ═══ */
 .table td {
   vertical-align: middle;
 }
 
-/* Nav tabs institucional */
-.nav-tabs {
-  border-bottom: 2px solid #e0e7ef;
-  gap: 4px;
+/* Manejo defensivo de texto largo en celdas */
+.td-truncate {
+  max-width: 250px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.nav-tabs .nav-link {
-  border: none;
-  border-bottom: 3px solid transparent;
-  border-radius: 0;
-  color: #5a7a96;
-  font-size: 0.85rem;
-  font-weight: 500;
-  padding: 10px 16px;
-  margin-bottom: -2px;
-  background: transparent;
-  transition: color 0.15s ease, border-color 0.15s ease;
+.td-truncate-sm {
+  max-width: 120px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.nav-tabs .nav-link:hover {
-  color: #1a3a5c;
-  border-bottom-color: #a0b8d0;
-  background: transparent;
+.td-nowrap {
+  white-space: nowrap;
 }
 
-.nav-tabs .nav-link.active {
-  color: #1a3a5c;
-  font-weight: 700;
-  border-bottom: 3px solid #1a3a5c;
-  background: transparent;
-}
-
-.nav-tabs .nav-link .badge {
-  font-size: 0.65rem;
-  padding: 2px 6px;
-  border-radius: 10px;
-  background-color: #1a3a5c;
-  color: white;
-  margin-left: 5px;
-  vertical-align: middle;
-}
-
-.nav-tabs .nav-link.active .badge {
-  background-color: #1a3a5c;
-}
-
-/* ── Tarjetas de resumen (stats) ── */
-.stat-card {
-  border: none;
-  border-radius: 10px;
-  border-top: 3px solid;
-  box-shadow: 0 1px 6px rgba(26,58,92,0.08);
-  padding: 1.1rem 1.25rem;
-}
-
-.stat-card .stat-label {
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: #5a7a96;
-  margin-bottom: 4px;
-}
-
-.stat-card .stat-num {
-  font-size: 2rem;
-  font-weight: 700;
-  line-height: 1;
-}
-
-/* ── Truncado con tooltip (instrucción del doctor) ── */
 .td-estado {
   max-width: 200px;
 }
@@ -148,6 +56,13 @@ body {
   white-space: nowrap;
 }
 
+/* Fila expandible de notas del doctor (Historial) */
+.notas-row td {
+  font-size: var(--font-size-sm);
+  color: #344a5e;
+}
+
+/* Tooltip ancho para texto largo */
 .tooltip-texto-largo .tooltip-inner {
   max-width: 350px;
   white-space: normal;
@@ -157,13 +72,174 @@ body {
   line-height: 1.45;
 }
 
-/* ── Lista de info ── */
+/* ═══ BADGES ═══ */
+.badge-estado {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  padding: 3px 10px;
+  border-radius: 4px;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  display: inline-block;
+}
+
+.bg-confirmado  { background-color: #1a3a5c !important; color: #fff !important; }
+.bg-pendiente   { background-color: #F6BE4F !important; color: #fff !important; }
+.bg-completada  { background-color: #14AE5C !important; color: #fff !important; }
+.bg-seguimiento { background-color: #9B59B6 !important; color: #fff !important; }
+.bg-no-asistio  { background-color: #E74C3C !important; color: #fff !important; }
+
+/* ═══ TABS ═══ */
+.nav-tabs {
+  border-bottom: 2px solid #e0e7ef;
+  gap: 4px;
+}
+
+.nav-tabs .nav-link {
+  border: none;
+  border-bottom: 3px solid transparent;
+  border-radius: 0;
+  color: #5a7a96;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  padding: 10px 16px;
+  margin-bottom: -2px;
+  background: transparent;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.nav-tabs .nav-link:hover {
+  color: var(--cd-primary);
+  border-bottom-color: #a0b8d0;
+  background: transparent;
+}
+
+.nav-tabs .nav-link.active {
+  color: var(--cd-primary);
+  font-weight: var(--font-weight-bold);
+  border-bottom: 3px solid var(--cd-primary);
+  background: transparent;
+}
+
+.nav-tabs .nav-link .badge {
+  font-size: 0.65rem;
+  padding: 2px 6px;
+  border-radius: 10px;
+  background-color: var(--cd-primary);
+  color: #fff;
+  margin-left: 5px;
+  vertical-align: middle;
+}
+
+/* ═══ STATS (tarjetas de resumen) ═══ */
+.stat-card {
+  border: none;
+  border-radius: 10px;
+  border-top: 3px solid;
+  box-shadow: 0 1px 4px rgba(26,58,92,0.08);
+  padding: 1rem 1.25rem;
+  text-align: center;
+}
+
+.stat-card .stat-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #5a7a96;
+  margin-bottom: 0.35rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+
+.stat-card .stat-num {
+  font-size: 2.4rem;
+  font-weight: 700;
+  line-height: 1;
+  margin: 0;
+}
+
+/* ═══ BOTÓN NUEVA CITA ═══ */
+.btn-nueva-cita {
+  border-radius: 7px;
+  font-weight: var(--font-weight-normal);
+  white-space: nowrap;
+}
+
+/* ═══ LISTA DE INFO ═══ */
 .info-list li {
   padding: 6px 0;
-  font-size: 0.95rem;
+  font-size: var(--font-size-base);
   border-bottom: 1px solid rgba(0,0,0,0.05);
 }
 
 .info-list li:last-child {
   border-bottom: none;
+}
+
+/* ═══ ACCORDION (Ayuda / FAQ) ═══ */
+.faq-card {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(26,58,92,0.08);
+}
+
+.accordion-item {
+  border: none;
+  border-bottom: 1px solid #e0e7ef;
+  border-radius: 0 !important;
+}
+
+.accordion-button {
+  font-weight: var(--font-weight-medium);
+  color: var(--cd-primary);
+  background-color: #ffffff;
+  box-shadow: none;
+  padding: 1.1rem 1.25rem;
+}
+
+.accordion-button:not(.collapsed) {
+  color: var(--cd-primary);
+  background-color: #eef3fa;
+  border-left: 3px solid var(--cd-primary);
+  font-weight: var(--font-weight-semibold);
+  box-shadow: none;
+}
+
+.accordion-button::after {
+  filter: invert(20%) sepia(50%) saturate(500%)
+          hue-rotate(190deg) brightness(60%);
+}
+
+.accordion-body {
+  background-color: #eef3fa;
+  border-left: 3px solid var(--cd-primary);
+  color: #344a5e;
+  padding: 1rem 1.5rem;
+}
+
+.accordion-item:first-child .accordion-button {
+  border-radius: 8px 8px 0 0 !important;
+}
+
+.accordion-item:last-child {
+  border-bottom: none;
+  border-radius: 0 0 8px 8px !important;
+}
+
+.estado-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 6px;
+}
+
+.estado-table td {
+  padding: 4px 12px;
+  vertical-align: middle;
+}
+
+.estado-table td:first-child {
+  width: 130px;
 }
