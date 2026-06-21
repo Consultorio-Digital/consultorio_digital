@@ -77,9 +77,24 @@ docker compose exec web python manage.py poblar_datos
 - principal/views.py: home() detecta rol y redirige
 - consultorio/views.py: reservas, slots AJAX, historial
 - registro/backends.py: autenticación por RUT o email
-- templates/base.html: layout global + navbar
-- static/css/navbar.css: estilos globales + transiciones
-- static/css/principal.css: estilos de vistas principales
+- templates/base.html: layout global + navbar (role-aware) + tooltips
+- static/css/navbar.css: tokens de diseño (escala tipográfica y de
+  espaciado) + estilos globales (navbar, cards, botones, tablas, forms)
+- static/css/principal.css: estilos de vistas (tablas, badges, tabs,
+  stats, accordion de ayuda)
+- static/css/login.css: estilos de login/registro
+  (NO existen form.css, mis_horas.css ni consultorio.css — eliminados)
+
+## Sistema de diseño (CSS)
+- Variables en :root de navbar.css (cargado global por base.html):
+  - Tipografía: --font-size-xs/sm/base/md/lg/xl, --font-weight-*,
+    --line-height-tight/base/relaxed
+  - Espaciado: --space-xs/sm/md/lg/xl/2xl
+- Títulos de página: <h1> (sin .h3) → font-size-xl + bold (regla global)
+- Padding de cards unificado vía .card-body (var(--space-lg)); NO usar
+  utilidades p-4/p-md-5 en card-body
+- Padding de celdas de tabla vía variables Bootstrap en .table
+- Los CSS llevan banners de sección: /* ═══ NAVBAR ═══ */, CARDS, etc.
 
 ## Hallazgos resueltos (no reabrir)
 - Usuario.direccion era EmailField → corregido a CharField (migración 0008)
@@ -87,12 +102,13 @@ docker compose exec web python manage.py poblar_datos
 - panel_doctor redirigía a URL inexistente → corregido
 - STATICFILES_DIRS faltaba → corregido
 - datos address/phone/birthdate no persistían en registro → corregido
+- CSS muerto (form.css, mis_horas.css, consultorio.css) → eliminado;
+  estilos consolidados y tokenizados en navbar.css + principal.css
 
 ## Deuda técnica conocida
 - Código de cancelación se muestra en pantalla (debería ir por email)
 - Se permiten reservas en fechas pasadas (intencional para pruebas)
 - María González tiene RUT matemáticamente inválido (99999999-9)
-- mis_horas.css es CSS muerto (ningún template lo enlaza)
 - queries/data.json (~29MB) versionado innecesariamente
 
 ## Testing

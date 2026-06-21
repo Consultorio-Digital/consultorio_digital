@@ -88,13 +88,30 @@ GPI/
 ├── registro/       # App: registro de usuarios y autenticación
 ├── consultorio/    # App: núcleo del dominio (reservas, disponibilidades)
 ├── templates/      # Templates globales (base.html, ayuda.html)
-├── static/         # CSS e imágenes
+├── static/css/     # navbar.css (tokens + globales), principal.css, login.css
 ├── utils/          # geodata.json con consultorios del MINSAL
 ├── docs/           # Documentación académica y técnica
 ├── Dockerfile
 ├── docker-compose.yml
 └── pyproject.toml
 ```
+
+## Sistema de diseño (CSS)
+Estilos consolidados en 3 archivos (se eliminaron `form.css`, `mis_horas.css`
+y `consultorio.css` por estar muertos):
+
+| Archivo | Rol |
+|---------|-----|
+| `navbar.css` | Tokens de diseño (`:root`) + estilos globales. Cargado por base.html en todas las páginas |
+| `principal.css` | Estilos de vistas: tablas, badges, tabs, stats, accordion |
+| `login.css` | Login y registro |
+
+**Tokens** (variables CSS en `navbar.css`):
+- Escala tipográfica: `--font-size-xs … --font-size-xl`, `--font-weight-*`, `--line-height-*`
+- Escala de espaciado: `--space-xs … --space-2xl`
+
+Cada archivo CSS está organizado con banners de sección
+(`/* ═══ NAVBAR ═══ */`, `CARDS`, `TABLAS`, `BADGES`, `BOTONES`, `FORMULARIOS`).
 
 ## Variables de entorno
 Ver .env.example para la lista completa de variables requeridas.
