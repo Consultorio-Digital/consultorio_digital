@@ -66,6 +66,15 @@ docker compose exec web python manage.py poblar_datos
 - IDs de CSS institucionales: #1a3a5c (azul oscuro), #f0f4f8 (fondo)
 - Badges de estado: partial en templates/_badge_estado.html
 - Modal historial paciente: partial en templates/_modal_historial.html
+- Navbar centralizado en base.html según rol (NO usar {% block navbar %}
+  por template; se eliminaron). El link activo se marca con
+  request.resolver_match.url_name
+- Feedback al usuario vía django.contrib.messages (NO session); se renderiza
+  globalmente en base.html. settings.MESSAGE_TAGS mapea ERROR → 'danger'
+- Tooltips: data-bs-toggle="tooltip" + data-bs-title (no title nativo en el
+  mismo elemento, para evitar tooltip doble); init global en base.html
+- Coordenadas en URLs (Maps): usar |stringformat:"f" para forzar punto
+  decimal (el locale es-cl renderiza coma y rompe el link)
 - Migraciones: NO incluir desfases preexistentes (solo cambios propios)
 - El campo auth.User.username almacena el RUT normalizado
 - STATICFILES_DIRS = [BASE_DIR / "static"]
@@ -77,7 +86,10 @@ docker compose exec web python manage.py poblar_datos
 - principal/views.py: home() detecta rol y redirige
 - consultorio/views.py: reservas, slots AJAX, historial
 - registro/backends.py: autenticación por RUT o email
-- templates/base.html: layout global + navbar (role-aware) + tooltips
+- consultorio/context_processors.py: rol_usuario expone es_admin/
+  es_profesional/es_paciente a todos los templates (lo usa el navbar)
+- templates/base.html: layout global + navbar role-aware + bloque de
+  mensajes (django messages) + init global de tooltips Bootstrap
 - static/css/navbar.css: tokens de diseño (escala tipográfica y de
   espaciado) + estilos globales (navbar, cards, botones, tablas, forms)
 - static/css/principal.css: estilos de vistas (tablas, badges, tabs,
@@ -104,6 +116,12 @@ docker compose exec web python manage.py poblar_datos
 - datos address/phone/birthdate no persistían en registro → corregido
 - CSS muerto (form.css, mis_horas.css, consultorio.css) → eliminado;
   estilos consolidados y tokenizados en navbar.css + principal.css
+- navbar duplicado en 9 templates → centralizado en base.html vía
+  context processor rol_usuario
+- confirmación/cancelación de reservas usaban session → migradas a
+  django messages (render global en base.html)
+- link de Google Maps salía con coma decimal (locale es-cl) → corregido
+  con |stringformat:"f"
 
 ## Deuda técnica conocida
 - Código de cancelación se muestra en pantalla (debería ir por email)
