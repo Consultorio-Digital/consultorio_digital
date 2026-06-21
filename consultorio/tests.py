@@ -473,8 +473,9 @@ class FlujoReservaFuncionalTests(TestCase):
         ).exclude(estado="cancelada").count()
         self.assertEqual(count, 1)
 
-    def test_slot_ocupado_guarda_ya_tomado_en_sesion(self):
+    def test_slot_ocupado_muestra_mensaje_advertencia(self):
         from django.utils import timezone
+        from django.contrib.messages import get_messages
         import datetime
 
         slot_dt = timezone.make_aware(datetime.datetime(2026, 7, 1, 10, 30))
@@ -491,24 +492,26 @@ class FlujoReservaFuncionalTests(TestCase):
             fecha_reserva= slot_dt,
             motivo       = "Reserva ocupada",
         )
-        self.client.post("/consultorio/", {
+        response = self.client.post("/consultorio/", {
             "consultorio"  : self.consultorio.objectid,
             "profesional_id": self.profesional.id,
             "motivo"       : "Intento sobre slot ocupado",
             "slot"         : "2026-07-01 10:30",
         })
-        sesion = self.client.session.get("reserva_confirmada", {})
-        self.assertTrue(sesion.get("ya_tomado"))
+        mensajes = [m.message for m in get_messages(response.wsgi_request)]
+        self.assertTrue(any("ya fue tomado" in m for m in mensajes))
 
-    def test_slot_libre_guarda_ya_tomado_false_en_sesion(self):
-        self.client.post("/consultorio/", {
+    def test_slot_libre_muestra_mensaje_exito(self):
+        from django.contrib.messages import get_messages
+
+        response = self.client.post("/consultorio/", {
             "consultorio"  : self.consultorio.objectid,
             "profesional_id": self.profesional.id,
             "motivo"       : "Cita nueva sin conflicto",
             "slot"         : "2026-07-01 09:00",
         })
-        sesion = self.client.session.get("reserva_confirmada", {})
-        self.assertFalse(sesion.get("ya_tomado"))
+        mensajes = [m.message for m in get_messages(response.wsgi_request)]
+        self.assertTrue(any("agendada con éxito" in m for m in mensajes))
 
 
 # ---------------------------------------------------------------------------

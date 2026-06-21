@@ -73,6 +73,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'consultorio.context_processors.rol_usuario',
             ],
         },
     },
@@ -152,3 +153,8 @@ CRISPY_TEMPLATE_PACK = "bootstrap5"
 LOGIN_REDIRECT_URL = "/"
 # Logout redirect
 LOGOUT_REDIRECT_URL = "/"
+
+# Mapear el nivel ERROR de messages a la clase de alerta de Bootstrap
+# (no existe .alert-error; el componente global usa alert-{{ message.tags }}).
+from django.contrib.messages import constants as messages_constants
+MESSAGE_TAGS = {messages_constants.ERROR: 'danger'}

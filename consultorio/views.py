@@ -73,13 +73,17 @@ def seleccionar_region(request):
                 )
 
             doctor_nombre = f"Dr/a. {profesional.usuario.nombre} {profesional.usuario.apellido}"
-            request.session['reserva_confirmada'] = {
-                'consultorio' : consultorio.nombre,
-                'fecha'       : fecha_reserva.strftime("%d/%m/%Y"),
-                'hora'        : fecha_reserva.strftime("%H:%M"),
-                'doctor'      : doctor_nombre,
-                'ya_tomado'   : slot_tomado,
-            }
+            if slot_tomado:
+                messages.warning(
+                    request,
+                    "El horario ya fue tomado. Por favor intenta reservar otro horario disponible."
+                )
+            else:
+                messages.success(
+                    request,
+                    f"¡Cita agendada con éxito! {consultorio.nombre} — {doctor_nombre} "
+                    f"el {fecha_reserva.strftime('%d/%m/%Y')} a las {fecha_reserva.strftime('%H:%M')}."
+                )
         except Exception as e:
             print(f"Error al crear reserva: {e}")
 
@@ -351,6 +355,10 @@ def cancelar_hora(request: HttpRequest):
             else:
                 # Código incorrecto: volver al paso 2 con error
                 request.session['codigo_incorrecto'] = True
+                messages.error(
+                    request,
+                    "El código ingresado no es correcto. Inténtalo de nuevo."
+                )
                 return redirect('cancelar_hora')
 
     # ── GET: renderizar según estado de sesión ──

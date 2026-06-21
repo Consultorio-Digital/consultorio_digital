@@ -54,17 +54,44 @@
 
         <div class="collapse navbar-collapse" id="navbarMain">
 
-          {# Links inyectados por cada vista #}
-          {% block navbar %}{% endblock %}
+          {# ── Navegación según rol (izquierda) ── #}
+          <ul class="navbar-nav me-auto gap-lg-1">
+            {% if es_paciente %}
+              <li class="nav-item">
+                <a class="nav-link text-white {% if request.resolver_match.url_name == 'principal' %}active{% endif %}"
+                   href="{% url 'principal:principal' %}">Inicio</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link text-white {% if request.resolver_match.url_name == 'consultorio' %}active{% endif %}"
+                   href="{% url 'consultorio' %}">Reservar hora</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link text-white {% if request.resolver_match.url_name == 'mis_horas' %}active{% endif %}"
+                   href="{% url 'mis_horas' %}">Mis horas</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link text-white {% if request.resolver_match.url_name == 'cancelar_hora' %}active{% endif %}"
+                   href="{% url 'cancelar_hora' %}">Cancelar hora</a>
+              </li>
+            {% elif es_profesional %}
+              <li class="nav-item">
+                <a class="nav-link text-white {% if request.resolver_match.url_name == 'panel_doctor' %}active{% endif %}"
+                   href="{% url 'principal:panel_doctor' %}">Mi panel</a>
+              </li>
+            {% elif es_admin %}
+              <li class="nav-item">
+                <a class="nav-link text-white {% if request.resolver_match.url_name == 'panel_admin' %}active{% endif %}"
+                   href="{% url 'principal:panel_admin' %}">Panel</a>
+              </li>
+            {% endif %}
+          </ul>
 
-          {# Derecha — siempre visible #}
+          {# ── Ayuda + usuario (derecha) ── #}
           <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-1">
 
             <li class="nav-item">
-              <a class="nav-link text-white" href="#">Contacto</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link text-white" href="{% url 'principal:ayuda' %}">Ayuda</a>
+              <a class="nav-link text-white {% if request.resolver_match.url_name == 'ayuda' %}active{% endif %}"
+                 href="{% url 'principal:ayuda' %}">Ayuda</a>
             </li>
 
             {% if user.is_authenticated %}
@@ -74,12 +101,12 @@
                   data-bs-toggle="dropdown"
                   aria-expanded="false">
                   <i class="bi bi-person-circle fs-5"></i>
-                  <span>{{ user.first_name }}</span>
+                  <span>{{ user.first_name|default:"Mi cuenta" }}</span>
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end shadow-sm">
                   <li>
                     <span class="dropdown-item-text text-muted small">
-                      {{ user.get_full_name }}
+                      {{ user.get_full_name|default:user.first_name|default:"Mi cuenta" }}
                     </span>
                   </li>
                   <li><hr class="dropdown-divider my-1"></li>
@@ -93,6 +120,12 @@
                   </li>
                 </ul>
               </li>
+            {% else %}
+              <li class="nav-item ms-lg-2 mt-2 mt-lg-0">
+                <a class="btn btn-light btn-sm fw-semibold" href="{% url 'login' %}">
+                  <i class="bi bi-box-arrow-in-right me-1"></i>Iniciar sesión
+                </a>
+              </li>
             {% endif %}
 
           </ul>
@@ -101,10 +134,29 @@
     </nav>
 
     <main class="container-xl py-4">
+      {% if messages %}
+      <div class="container-xl pt-3">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
       {% block content %}{% endblock %}
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('[data-bs-toggle="tooltip"]')
+          .forEach(el => new bootstrap.Tooltip(el, {
+            trigger: 'hover',
+            placement: 'top'
+          }));
+      });
+    </script>
     {% block extra_js %}{% endblock %}
 
   </body>

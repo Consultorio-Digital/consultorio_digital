@@ -41,15 +41,12 @@ def home(request: HttpRequest):
         except Exception:
             reservas = []
 
-    confirmacion = request.session.pop('reserva_confirmada', None)
-
     return render(
         request=request,
         template_name="principal.html",
         context={
-            "title"       : "Página principal",
-            "reservas"    : reservas,
-            "confirmacion": confirmacion,
+            "title"   : "Página principal",
+            "reservas": reservas,
         }
     )
 
@@ -206,6 +203,21 @@ def panel_admin(request: HttpRequest):
     for p in profesionales:
         p.cuenta_activa = p.usuario.rut in ruts_activos
 
+    # ── Estadísticas rápidas (tab "Estadísticas") ──
+    reserva_reciente = (
+        Reserva.objects
+        .select_related('paciente__usuario')
+        .order_by('-fecha_reserva')
+        .first()
+    )
+    profesional_top = max(profesionales, key=lambda p: p.citas_activas, default=None)
+    consultorio_top = (
+        Consultorio.objects
+        .annotate(total_reservas=Count('reservas'))
+        .order_by('-total_reservas')
+        .first()
+    )
+
     return render(
         request=request,
         template_name="panel_admin.html",
@@ -217,6 +229,9 @@ def panel_admin(request: HttpRequest):
             "ultimas_reservas"   : ultimas_reservas,
             "profesionales"      : profesionales,
             "estado_choices"     : Reserva.ESTADO_CHOICES,
+            "reserva_reciente"   : reserva_reciente,
+            "profesional_top"    : profesional_top,
+            "consultorio_top"    : consultorio_top,
         }
     )
 
