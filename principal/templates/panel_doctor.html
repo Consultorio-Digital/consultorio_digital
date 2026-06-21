@@ -7,32 +7,13 @@
   <link rel="stylesheet" href="{% static 'css/principal.css' %}"/>
 {% endblock %}
 
-{% block navbar %}
-  <ul class="navbar-nav me-auto gap-lg-1">
-    <li class="nav-item">
-      <a class="nav-link text-white active" href="{% url 'principal:panel_doctor' %}">Panel</a>
-    </li>
-  </ul>
-{% endblock %}
-
 {% block content %}
-  <div class="container-xl py-3">
-
-    {# ── Mensajes (éxito / error) ── #}
-    {% if messages %}
-      {% for message in messages %}
-        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
-          {{ message }}
-          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
-        </div>
-      {% endfor %}
-    {% endif %}
 
     {# ── Header ── #}
     <div class="card mb-4">
-      <div class="card-body p-4 d-flex flex-wrap justify-content-between align-items-start gap-2">
+      <div class="card-body d-flex flex-wrap justify-content-between align-items-start gap-2">
         <div>
-          <h1 class="h3 mb-1">
+          <h1 class="mb-1">
             ¡Bienvenido, Dr/a. {{ profesional.usuario.nombre }} {{ profesional.usuario.apellido }}!
           </h1>
           <p class="text-muted mb-0">
@@ -53,35 +34,35 @@
 
     {# ── 4 cards de resumen ── #}
     <div class="row g-3 mb-4">
-      <div class="col-6 col-lg-3">
-        <div class="card stat-card h-100" style="border-top-color: #1a3a5c;">
-          <div class="card-body">
-            <h2 class="h6 text-muted mb-1"><i class="bi bi-calendar-day me-1"></i>Citas hoy</h2>
-            <p class="stat-num mb-0" style="color: #1a3a5c;">{{ citas_hoy|length }}</p>
+      <div class="col-6 col-md-3">
+        <div class="card stat-card h-100" style="border-top-color: #1a3a5c">
+          <div class="card-body d-flex flex-column align-items-center justify-content-center py-3">
+            <div class="stat-label"><i class="bi bi-calendar-day"></i> Citas hoy</div>
+            <div class="stat-num" style="color: #1a3a5c">{{ citas_hoy|length }}</div>
           </div>
         </div>
       </div>
-      <div class="col-6 col-lg-3">
-        <div class="card stat-card h-100" style="border-top-color: #F6BE4F;">
-          <div class="card-body">
-            <h2 class="h6 text-muted mb-1"><i class="bi bi-hourglass-split me-1"></i>Pendientes hoy</h2>
-            <p class="stat-num mb-0" style="color: #D98C00;">{{ pendientes_hoy }}</p>
+      <div class="col-6 col-md-3">
+        <div class="card stat-card h-100" style="border-top-color: #F6BE4F">
+          <div class="card-body d-flex flex-column align-items-center justify-content-center py-3">
+            <div class="stat-label"><i class="bi bi-hourglass-split"></i> Pendientes hoy</div>
+            <div class="stat-num" style="color: #D98C00">{{ pendientes_hoy }}</div>
           </div>
         </div>
       </div>
-      <div class="col-6 col-lg-3">
-        <div class="card stat-card h-100" style="border-top-color: #14AE5C;">
-          <div class="card-body">
-            <h2 class="h6 text-muted mb-1"><i class="bi bi-check2-circle me-1"></i>Completadas / Seguimiento</h2>
-            <p class="stat-num mb-0" style="color: #14AE5C;">{{ completadas_seguimiento }}</p>
+      <div class="col-6 col-md-3">
+        <div class="card stat-card h-100" style="border-top-color: #14AE5C">
+          <div class="card-body d-flex flex-column align-items-center justify-content-center py-3">
+            <div class="stat-label"><i class="bi bi-check2-circle"></i> Completadas / Seguimiento</div>
+            <div class="stat-num" style="color: #14AE5C">{{ completadas_seguimiento }}</div>
           </div>
         </div>
       </div>
-      <div class="col-6 col-lg-3">
-        <div class="card stat-card h-100" style="border-top-color: #E74C3C;">
-          <div class="card-body">
-            <h2 class="h6 text-muted mb-1"><i class="bi bi-exclamation-triangle me-1"></i>Sin gestionar</h2>
-            <p class="stat-num mb-0" style="color: #E74C3C;">{{ sin_gestionar }}</p>
+      <div class="col-6 col-md-3">
+        <div class="card stat-card h-100" style="border-top-color: #E74C3C">
+          <div class="card-body d-flex flex-column align-items-center justify-content-center py-3">
+            <div class="stat-label"><i class="bi bi-exclamation-triangle"></i> Sin gestionar</div>
+            <div class="stat-num" style="color: #E74C3C">{{ sin_gestionar }}</div>
           </div>
         </div>
       </div>
@@ -146,15 +127,16 @@
                     <tr>
                       <td>
                         <button type="button"
-                                class="btn btn-link p-0 text-decoration-none fw-semibold paciente-link"
+                                class="btn btn-link p-0 text-decoration-none fw-semibold paciente-link text-truncate align-middle"
+                                style="max-width: 160px;"
+                                title="{{ cita.paciente.usuario.nombre }} {{ cita.paciente.usuario.apellido }}"
                                 data-paciente-id="{{ cita.paciente.id }}"
                                 data-consultorio-id="{{ cita.consultorio.objectid }}">
                           {{ cita.paciente.usuario.nombre }} {{ cita.paciente.usuario.apellido }}
                         </button>
                       </td>
-                      <td>
-                        <span class="d-inline-block text-truncate" style="max-width: 200px;"
-                              title="{{ cita.motivo }}">{{ cita.motivo }}</span>
+                      <td data-bs-toggle="tooltip" data-bs-title="{{ cita.motivo }}">
+                        <span class="d-inline-block text-truncate" style="max-width: 200px;">{{ cita.motivo }}</span>
                       </td>
                       <td class="text-nowrap">{{ cita.fecha_reserva|date:"H:i" }}</td>
                       <td>{% include "_badge_estado.html" with estado=cita.estado %}</td>
@@ -205,7 +187,9 @@
                     <tr>
                       <td>
                         <button type="button"
-                                class="btn btn-link p-0 text-decoration-none fw-semibold paciente-link"
+                                class="btn btn-link p-0 text-decoration-none fw-semibold paciente-link text-truncate align-middle"
+                                style="max-width: 160px;"
+                                title="{{ cita.paciente.usuario.nombre }} {{ cita.paciente.usuario.apellido }}"
                                 data-paciente-id="{{ cita.paciente.id }}"
                                 data-consultorio-id="{{ cita.consultorio.objectid }}">
                           {{ cita.paciente.usuario.nombre }} {{ cita.paciente.usuario.apellido }}
@@ -213,9 +197,8 @@
                       </td>
                       <td class="text-nowrap">{{ cita.fecha_reserva|date:"d/m/Y" }}</td>
                       <td class="text-nowrap">{{ cita.fecha_reserva|date:"H:i" }}</td>
-                      <td>
-                        <span class="d-inline-block text-truncate" style="max-width: 200px;"
-                              title="{{ cita.motivo }}">{{ cita.motivo }}</span>
+                      <td data-bs-toggle="tooltip" data-bs-title="{{ cita.motivo }}">
+                        <span class="d-inline-block text-truncate" style="max-width: 200px;">{{ cita.motivo }}</span>
                       </td>
                       <td>{% include "_badge_estado.html" with estado=cita.estado %}</td>
                       <td>{% include "_acciones_doctor.html" with reserva=cita con_notas=False %}</td>
@@ -304,7 +287,9 @@
                         data-estado="{{ r.estado }}">
                       <td>
                         <button type="button"
-                                class="btn btn-link p-0 text-decoration-none fw-semibold paciente-link"
+                                class="btn btn-link p-0 text-decoration-none fw-semibold paciente-link text-truncate align-middle"
+                                style="max-width: 160px;"
+                                title="{{ r.paciente.usuario.nombre }} {{ r.paciente.usuario.apellido }}"
                                 data-paciente-id="{{ r.paciente.id }}"
                                 data-consultorio-id="{{ r.consultorio.objectid }}">
                           {{ r.paciente.usuario.nombre }} {{ r.paciente.usuario.apellido }}
@@ -313,11 +298,25 @@
                       <td class="text-nowrap">{{ r.fecha_reserva|date:"d/m/Y" }}</td>
                       <td class="text-nowrap">{{ r.fecha_reserva|date:"H:i" }}</td>
                       <td>
-                        <span class="d-inline-block text-truncate" style="max-width: 200px;"
-                              title="{{ r.motivo }}">{{ r.motivo }}</span>
+                        {{ r.motivo|truncatechars:30 }}
+                        {% if r.notas_doctor %}
+                        <button class="btn btn-link btn-sm p-0 ms-1 toggle-notas"
+                                data-target="notas-{{ r.id }}"
+                                title="Ver instrucciones">
+                          <i class="bi bi-chevron-down"></i>
+                        </button>
+                        {% endif %}
                       </td>
                       <td>{% include "_badge_estado.html" with estado=r.estado %}</td>
                     </tr>
+                    {% if r.notas_doctor %}
+                    <tr id="notas-{{ r.id }}" class="notas-row d-none">
+                      <td colspan="5" class="py-2 px-4"
+                          style="background:#eef3fa; border-left:3px solid #1a3a5c">
+                        <small class="text-muted fw-semibold">Instrucciones: </small>{{ r.notas_doctor }}
+                      </td>
+                    </tr>
+                    {% endif %}
                   {% endfor %}
                   <tr id="hist-sin-resultados" class="d-none">
                     <td colspan="5" class="text-center text-muted py-4">
@@ -503,7 +502,6 @@
         </form>
       </div>
     </div>
-  </div>
 
 {% endblock %}
 
@@ -608,6 +606,18 @@ document.addEventListener('DOMContentLoaded', function () {
     histEstado.addEventListener('change', filtrarHistorial);
     filtrarHistorial();
   }
+
+  // ── Filas expandibles de notas del doctor (Historial) ──
+  document.querySelectorAll('.toggle-notas').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      const target = document.getElementById(this.dataset.target);
+      if (!target) return;
+      target.classList.toggle('d-none');
+      const icon = this.querySelector('i');
+      icon.classList.toggle('bi-chevron-down');
+      icon.classList.toggle('bi-chevron-up');
+    });
+  });
 
 });
 </script>

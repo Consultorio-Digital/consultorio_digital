@@ -7,242 +7,349 @@
   <link rel="stylesheet" href="{% static 'css/principal.css' %}"/>
 {% endblock %}
 
-{% block navbar %}
-  <ul class="navbar-nav me-auto gap-lg-1">
-    <li class="nav-item">
-      <a class="nav-link text-white active" href="{% url 'principal:panel_admin' %}">Panel</a>
-    </li>
-  </ul>
-{% endblock %}
-
 {% block content %}
-  <div class="container-xl py-3">
 
-    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
-      <h1 class="h3 mb-0">Panel del administrador</h1>
-      <a href="{% url 'admin:index' %}" class="btn btn-outline-secondary btn-sm">
-        <i class="bi bi-gear me-1"></i>Administración avanzada
-      </a>
-    </div>
+    <h1 class="mb-1">Panel del administrador</h1>
+    <p class="text-muted mb-4">Gestión de reservas, profesionales y estadísticas</p>
 
-    {# ── Mensajes (éxito / error) ── #}
-    {% if messages %}
-      {% for message in messages %}
-        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
-          {{ message }}
-          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
-        </div>
-      {% endfor %}
-    {% endif %}
+    {# ── Navegación por tabs ── #}
+    <ul class="nav nav-tabs mb-3" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="tab-reservas" data-tab="reservas" data-bs-toggle="tab"
+                data-bs-target="#pane-reservas" type="button" role="tab">
+          Reservas
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="tab-profesionales" data-tab="profesionales" data-bs-toggle="tab"
+                data-bs-target="#pane-profesionales" type="button" role="tab">
+          Profesionales
+          <span class="badge text-bg-secondary ms-1">{{ profesionales|length }}</span>
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="tab-estadisticas" data-tab="estadisticas" data-bs-toggle="tab"
+                data-bs-target="#pane-estadisticas" type="button" role="tab">
+          Estadísticas
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="tab-admin" data-tab="admin" data-bs-toggle="tab"
+                data-bs-target="#pane-admin" type="button" role="tab">
+          Administración avanzada
+        </button>
+      </li>
+    </ul>
 
-    {# ── Tarjetas de estadísticas ── #}
-    <div class="row g-3 mb-4">
+    <div class="tab-content">
 
-      <div class="col-12 col-md-6 col-lg-3">
-        <div class="card shadow-sm h-100">
-          <div class="card-body">
-            <h2 class="h6 text-muted mb-1">
-              <i class="bi bi-people me-1"></i>Pacientes
-            </h2>
-            <p class="display-6 fw-bold mb-0">{{ total_pacientes }}</p>
-          </div>
-        </div>
-      </div>
+      {# ── Tab 1: Reservas ── #}
+      <div class="tab-pane fade show active" id="pane-reservas" role="tabpanel">
 
-      <div class="col-12 col-md-6 col-lg-3">
-        <div class="card shadow-sm h-100">
-          <div class="card-body">
-            <h2 class="h6 text-muted mb-1">
-              <i class="bi bi-person-badge me-1"></i>Profesionales
-            </h2>
-            <p class="display-6 fw-bold mb-0">{{ total_profesionales }}</p>
-          </div>
-        </div>
-      </div>
+        {# Tarjetas de resumen #}
+        <div class="row g-3 mb-4">
 
-      <div class="col-12 col-lg-6">
-        <div class="card shadow-sm h-100">
-          <div class="card-body">
-            <h2 class="h6 text-muted mb-2">
-              <i class="bi bi-calendar-check me-1"></i>Reservas por estado
-            </h2>
-            {% if reservas_por_estado %}
-              <div class="d-flex flex-wrap gap-2">
-                {% for fila in reservas_por_estado %}
-                  <span class="d-inline-flex align-items-center gap-1 estado-filtro" role="button"
-                        data-estado="{{ fila.estado }}" title="Filtrar la tabla por este estado"
-                        style="cursor: pointer;">
-                    {% include "_badge_estado.html" with estado=fila.estado %}
-                    <span class="badge text-bg-primary">{{ fila.total }}</span>
-                  </span>
-                {% endfor %}
+          <div class="col-6 col-md-3">
+            <div class="card stat-card h-100" style="border-top-color: #1a3a5c">
+              <div class="card-body d-flex flex-column align-items-center justify-content-center py-3">
+                <div class="stat-label"><i class="bi bi-people"></i> Pacientes</div>
+                <div class="stat-num" style="color: #1a3a5c">{{ total_pacientes }}</div>
               </div>
-            {% else %}
-              <p class="text-muted mb-0">Sin reservas registradas.</p>
-            {% endif %}
+            </div>
+          </div>
+
+          <div class="col-6 col-md-3">
+            <div class="card stat-card h-100" style="border-top-color: #14AE5C">
+              <div class="card-body d-flex flex-column align-items-center justify-content-center py-3">
+                <div class="stat-label"><i class="bi bi-person-badge"></i> Profesionales</div>
+                <div class="stat-num" style="color: #14AE5C">{{ total_profesionales }}</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-12 col-lg-6">
+            <div class="card shadow-sm h-100">
+              <div class="card-body">
+                <h2 class="h6 text-muted mb-2">
+                  <i class="bi bi-calendar-check me-1"></i>Reservas por estado
+                </h2>
+                {% if reservas_por_estado %}
+                  <div class="d-flex flex-wrap gap-2">
+                    {% for fila in reservas_por_estado %}
+                      <span class="d-inline-flex align-items-center gap-1 estado-filtro" role="button"
+                            data-estado="{{ fila.estado }}" title="Filtrar la tabla por este estado"
+                            style="cursor: pointer;">
+                        {% include "_badge_estado.html" with estado=fila.estado %}
+                        <span class="badge text-bg-primary">{{ fila.total }}</span>
+                      </span>
+                    {% endfor %}
+                  </div>
+                {% else %}
+                  <p class="text-muted mb-0">Sin reservas registradas.</p>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        {# Últimas 20 reservas #}
+        <div class="card shadow-sm" id="tabla-reservas">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h2 class="h5 mb-0">Últimas 20 reservas</h2>
+              <a href="{% url 'principal:admin_exportar_reservas' %}"
+                 class="btn btn-sm btn-outline-success">
+                <i class="bi bi-download me-1"></i>Exportar todas (CSV)
+              </a>
+            </div>
+
+            {# Barra de filtros (client-side) #}
+            <div class="row g-2 mb-3">
+              <div class="col-12 col-md-4">
+                <input type="text" id="f-texto" class="form-control form-control-sm"
+                       placeholder="Buscar paciente o profesional...">
+              </div>
+              <div class="col-6 col-md-3">
+                <select id="f-estado" class="form-select form-select-sm">
+                  <option value="">Todos los estados</option>
+                  <option value="pendiente">Pendiente</option>
+                  <option value="confirmada">Confirmada</option>
+                  <option value="completada">Completada</option>
+                  <option value="cancelada">Cancelada</option>
+                  <option value="seguimiento">Seguimiento</option>
+                  <option value="no_asistio">No asistió</option>
+                </select>
+              </div>
+              <div class="col-6 col-md-3">
+                <select id="f-consultorio" class="form-select form-select-sm">
+                  <option value="">Todos los consultorios</option>
+                </select>
+              </div>
+              <div class="col-12 col-md-2">
+                <button type="button" id="f-limpiar" class="btn btn-sm btn-outline-secondary w-100">
+                  Limpiar filtros
+                </button>
+              </div>
+            </div>
+
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0">
+                <thead>
+                  <tr>
+                    <th scope="col">Paciente</th>
+                    <th scope="col">Profesional</th>
+                    <th scope="col">Consultorio</th>
+                    <th scope="col">Fecha</th>
+                    <th scope="col">Estado</th>
+                    <th scope="col" class="text-end">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for reserva in ultimas_reservas %}
+                    <tr class="reserva-row"
+                        data-paciente="{{ reserva.paciente.usuario.nombre }} {{ reserva.paciente.usuario.apellido }}"
+                        data-profesional="{% if reserva.profesional %}{{ reserva.profesional.usuario.nombre }} {{ reserva.profesional.usuario.apellido }}{% endif %}"
+                        data-estado="{{ reserva.estado }}"
+                        data-consultorio="{{ reserva.consultorio.nombre }}">
+                      <td data-bs-toggle="tooltip" data-bs-title="{{ reserva.paciente.usuario.nombre }} {{ reserva.paciente.usuario.apellido }}">
+                        <button type="button"
+                                class="btn btn-link p-0 text-decoration-none fw-semibold paciente-link text-truncate align-middle"
+                                style="max-width: 180px;"
+                                data-paciente-id="{{ reserva.paciente.id }}"
+                                data-consultorio-id="{{ reserva.consultorio.objectid }}">
+                          {{ reserva.paciente.usuario.nombre }} {{ reserva.paciente.usuario.apellido }}
+                        </button>
+                      </td>
+                      <td>
+                        {% if reserva.profesional %}
+                          {{ reserva.profesional.usuario.nombre }} {{ reserva.profesional.usuario.apellido }}
+                        {% else %}
+                          <span class="text-muted">—</span>
+                        {% endif %}
+                      </td>
+                      <td class="td-truncate" data-bs-toggle="tooltip" data-bs-title="{{ reserva.consultorio.nombre }}">{{ reserva.consultorio.nombre }}</td>
+                      <td class="td-nowrap">{{ reserva.fecha_reserva|date:"d/m/Y H:i" }}</td>
+                      <td>{% include "_badge_estado.html" with estado=reserva.estado %}</td>
+                      <td class="text-end">
+                        <button type="button"
+                                class="btn btn-sm btn-outline-secondary editar-reserva"
+                                data-bs-toggle="modal" data-bs-target="#modalAdminReserva"
+                                data-reserva-id="{{ reserva.id }}"
+                                data-estado="{{ reserva.estado }}"
+                                data-paciente="{{ reserva.paciente.usuario.nombre }} {{ reserva.paciente.usuario.apellido }}">
+                          <i class="bi bi-pencil-square me-1"></i>Estado
+                        </button>
+                      </td>
+                    </tr>
+                  {% empty %}
+                    <tr>
+                      <td colspan="6" class="text-center text-muted py-3">No hay reservas.</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      {# ── Tab 2: Profesionales ── #}
+      <div class="tab-pane fade" id="pane-profesionales" role="tabpanel">
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <h2 class="h5 mb-3">Profesionales por consultorio</h2>
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0">
+                <thead>
+                  <tr>
+                    <th scope="col">Consultorio</th>
+                    <th scope="col">Comuna</th>
+                    <th scope="col">Profesional</th>
+                    <th scope="col">Especialidad</th>
+                    <th scope="col">Citas activas</th>
+                    <th scope="col">Cuenta</th>
+                    <th scope="col" class="text-end">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for prof in profesionales %}
+                    <tr>
+                      <td class="td-truncate" title="{{ prof.consultorio.nombre }}">{% if prof.consultorio %}{{ prof.consultorio.nombre }}{% else %}<span class="text-muted">—</span>{% endif %}</td>
+                      <td class="td-nowrap">{% if prof.consultorio %}{{ prof.consultorio.nom_com }}{% else %}<span class="text-muted">—</span>{% endif %}</td>
+                      <td class="td-truncate" title="{{ prof.usuario.nombre }} {{ prof.usuario.apellido }}">{{ prof.usuario.nombre }} {{ prof.usuario.apellido }}</td>
+                      <td class="td-truncate-sm" title="{{ prof.especialidad }}">{{ prof.especialidad }}</td>
+                      <td>
+                        {% if prof.citas_activas == 0 %}
+                          <span class="badge text-bg-secondary">{{ prof.citas_activas }}</span>
+                        {% elif prof.citas_activas <= 5 %}
+                          <span class="badge text-bg-primary">{{ prof.citas_activas }}</span>
+                        {% else %}
+                          <span class="badge text-bg-success">{{ prof.citas_activas }}</span>
+                        {% endif %}
+                      </td>
+                      <td>
+                        {% if prof.cuenta_activa %}
+                          <span class="badge bg-confirmado">Activa</span>
+                        {% else %}
+                          <span class="badge bg-secondary">Inactiva</span>
+                        {% endif %}
+                      </td>
+                      <td class="text-end">
+                        <form method="post" action="{% url 'principal:admin_toggle_cuenta' %}" class="d-inline">
+                          {% csrf_token %}
+                          <input type="hidden" name="rut" value="{{ prof.usuario.rut }}">
+                          {% if prof.cuenta_activa %}
+                            <button type="submit" class="btn btn-sm btn-danger"
+                                    onclick="return confirm('¿Desactivar la cuenta de {{ prof.usuario.nombre }} {{ prof.usuario.apellido }}? No podrá iniciar sesión.');">
+                              <i class="bi bi-lock me-1"></i>Desactivar
+                            </button>
+                          {% else %}
+                            <button type="submit" class="btn btn-sm btn-success">
+                              <i class="bi bi-unlock me-1"></i>Activar
+                            </button>
+                          {% endif %}
+                        </form>
+                      </td>
+                    </tr>
+                  {% empty %}
+                    <tr>
+                      <td colspan="7" class="text-center text-muted py-3">No hay profesionales registrados.</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>
 
-    </div>
+      {# ── Tab 3: Estadísticas ── #}
+      <div class="tab-pane fade" id="pane-estadisticas" role="tabpanel">
+        <div class="row g-3">
 
-    {# ── Últimas 20 reservas ── #}
-    <div class="card shadow-sm" id="tabla-reservas">
-      <div class="card-body">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-          <h2 class="h5 mb-0">Últimas 20 reservas</h2>
-          <a href="{% url 'principal:admin_exportar_reservas' %}"
-             class="btn btn-sm btn-outline-success">
-            <i class="bi bi-download me-1"></i>Exportar todas (CSV)
-          </a>
-        </div>
-
-        {# ── Barra de filtros (client-side) ── #}
-        <div class="row g-2 mb-3">
           <div class="col-12 col-md-4">
-            <input type="text" id="f-texto" class="form-control form-control-sm"
-                   placeholder="Buscar paciente o profesional...">
+            <div class="card shadow-sm h-100">
+              <div class="card-body">
+                <h2 class="h6 text-muted mb-2">
+                  <i class="bi bi-clock-history me-1"></i>Reserva más reciente
+                </h2>
+                {% if reserva_reciente %}
+                  <p class="h5 mb-1">{{ reserva_reciente.fecha_reserva|date:"d/m/Y H:i" }}</p>
+                  <p class="text-muted mb-0">
+                    {{ reserva_reciente.paciente.usuario.nombre }} {{ reserva_reciente.paciente.usuario.apellido }}
+                  </p>
+                {% else %}
+                  <p class="text-muted mb-0">Sin reservas registradas.</p>
+                {% endif %}
+              </div>
+            </div>
           </div>
-          <div class="col-6 col-md-3">
-            <select id="f-estado" class="form-select form-select-sm">
-              <option value="">Todos los estados</option>
-              <option value="pendiente">Pendiente</option>
-              <option value="confirmada">Confirmada</option>
-              <option value="completada">Completada</option>
-              <option value="cancelada">Cancelada</option>
-              <option value="seguimiento">Seguimiento</option>
-              <option value="no_asistio">No asistió</option>
-            </select>
-          </div>
-          <div class="col-6 col-md-3">
-            <select id="f-consultorio" class="form-select form-select-sm">
-              <option value="">Todos los consultorios</option>
-            </select>
-          </div>
-          <div class="col-12 col-md-2">
-            <button type="button" id="f-limpiar" class="btn btn-sm btn-outline-secondary w-100">
-              Limpiar filtros
-            </button>
-          </div>
-        </div>
 
-        <div class="table-responsive">
-          <table class="table table-hover align-middle mb-0">
-            <thead>
-              <tr>
-                <th scope="col">Paciente</th>
-                <th scope="col">Profesional</th>
-                <th scope="col">Consultorio</th>
-                <th scope="col">Fecha</th>
-                <th scope="col">Estado</th>
-                <th scope="col" class="text-end">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for reserva in ultimas_reservas %}
-                <tr class="reserva-row"
-                    data-paciente="{{ reserva.paciente.usuario.nombre }} {{ reserva.paciente.usuario.apellido }}"
-                    data-profesional="{% if reserva.profesional %}{{ reserva.profesional.usuario.nombre }} {{ reserva.profesional.usuario.apellido }}{% endif %}"
-                    data-estado="{{ reserva.estado }}"
-                    data-consultorio="{{ reserva.consultorio.nombre }}">
-                  <td>
-                    <button type="button"
-                            class="btn btn-link p-0 text-decoration-none fw-semibold paciente-link"
-                            data-paciente-id="{{ reserva.paciente.id }}"
-                            data-consultorio-id="{{ reserva.consultorio.objectid }}">
-                      {{ reserva.paciente.usuario.nombre }} {{ reserva.paciente.usuario.apellido }}
-                    </button>
-                  </td>
-                  <td>
-                    {% if reserva.profesional %}
-                      {{ reserva.profesional.usuario.nombre }} {{ reserva.profesional.usuario.apellido }}
-                    {% else %}
-                      <span class="text-muted">—</span>
-                    {% endif %}
-                  </td>
-                  <td>{{ reserva.consultorio.nombre }}</td>
-                  <td>{{ reserva.fecha_reserva|date:"d/m/Y H:i" }}</td>
-                  <td>{% include "_badge_estado.html" with estado=reserva.estado %}</td>
-                  <td class="text-end">
-                    <button type="button"
-                            class="btn btn-sm btn-outline-primary editar-reserva"
-                            data-bs-toggle="modal" data-bs-target="#modalAdminReserva"
-                            data-reserva-id="{{ reserva.id }}"
-                            data-estado="{{ reserva.estado }}"
-                            data-paciente="{{ reserva.paciente.usuario.nombre }} {{ reserva.paciente.usuario.apellido }}">
-                      <i class="bi bi-pencil-square me-1"></i>Estado
-                    </button>
-                  </td>
-                </tr>
-              {% empty %}
-                <tr>
-                  <td colspan="6" class="text-center text-muted py-3">No hay reservas.</td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
+          <div class="col-12 col-md-4">
+            <div class="card shadow-sm h-100">
+              <div class="card-body">
+                <h2 class="h6 text-muted mb-2">
+                  <i class="bi bi-person-badge me-1"></i>Profesional con más citas activas
+                </h2>
+                {% if profesional_top %}
+                  <p class="h5 mb-1">
+                    {{ profesional_top.usuario.nombre }} {{ profesional_top.usuario.apellido }}
+                  </p>
+                  <p class="text-muted mb-0">
+                    <span class="badge text-bg-primary">{{ profesional_top.citas_activas }}</span>
+                    citas activas
+                  </p>
+                {% else %}
+                  <p class="text-muted mb-0">Sin profesionales registrados.</p>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <div class="col-12 col-md-4">
+            <div class="card shadow-sm h-100">
+              <div class="card-body">
+                <h2 class="h6 text-muted mb-2">
+                  <i class="bi bi-hospital me-1"></i>Consultorio con más actividad
+                </h2>
+                {% if consultorio_top %}
+                  <p class="h5 mb-1">{{ consultorio_top.nombre }}</p>
+                  <p class="text-muted mb-0">
+                    <span class="badge text-bg-primary">{{ consultorio_top.total_reservas }}</span>
+                    reservas
+                  </p>
+                {% else %}
+                  <p class="text-muted mb-0">Sin consultorios registrados.</p>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
-    </div>
 
-    {# ── Profesionales por consultorio ── #}
-    <div class="card shadow-sm mt-4">
-      <div class="card-body">
-        <h2 class="h5 mb-3">Profesionales por consultorio</h2>
-        <div class="table-responsive">
-          <table class="table table-hover align-middle mb-0">
-            <thead>
-              <tr>
-                <th scope="col">Consultorio</th>
-                <th scope="col">Comuna</th>
-                <th scope="col">Profesional</th>
-                <th scope="col">Especialidad</th>
-                <th scope="col">Citas activas</th>
-                <th scope="col">Cuenta</th>
-                <th scope="col" class="text-end">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for prof in profesionales %}
-                <tr>
-                  <td>{% if prof.consultorio %}{{ prof.consultorio.nombre }}{% else %}<span class="text-muted">—</span>{% endif %}</td>
-                  <td>{% if prof.consultorio %}{{ prof.consultorio.nom_com }}{% else %}<span class="text-muted">—</span>{% endif %}</td>
-                  <td>{{ prof.usuario.nombre }} {{ prof.usuario.apellido }}</td>
-                  <td>{{ prof.especialidad }}</td>
-                  <td><span class="badge text-bg-primary">{{ prof.citas_activas }}</span></td>
-                  <td>
-                    {% if prof.cuenta_activa %}
-                      <span class="badge bg-confirmado">Activa</span>
-                    {% else %}
-                      <span class="badge bg-secondary">Inactiva</span>
-                    {% endif %}
-                  </td>
-                  <td class="text-end">
-                    <form method="post" action="{% url 'principal:admin_toggle_cuenta' %}" class="d-inline">
-                      {% csrf_token %}
-                      <input type="hidden" name="rut" value="{{ prof.usuario.rut }}">
-                      {% if prof.cuenta_activa %}
-                        <button type="submit" class="btn btn-sm btn-outline-danger"
-                                onclick="return confirm('¿Desactivar la cuenta de {{ prof.usuario.nombre }} {{ prof.usuario.apellido }}? No podrá iniciar sesión.');">
-                          <i class="bi bi-lock me-1"></i>Desactivar
-                        </button>
-                      {% else %}
-                        <button type="submit" class="btn btn-sm btn-outline-success">
-                          <i class="bi bi-unlock me-1"></i>Activar
-                        </button>
-                      {% endif %}
-                    </form>
-                  </td>
-                </tr>
-              {% empty %}
-                <tr>
-                  <td colspan="7" class="text-center text-muted py-3">No hay profesionales registrados.</td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
+      {# ── Tab 4: Administración avanzada ── #}
+      <div class="tab-pane fade" id="pane-admin" role="tabpanel">
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <h2 class="h5 mb-2">
+              <i class="bi bi-gear me-1"></i>Administración avanzada
+            </h2>
+            <p class="text-muted">
+              Accede al panel de administración de Django para gestionar
+              directamente los registros del sistema: usuarios, profesionales,
+              pacientes, consultorios, reservas y disponibilidades. Dispones de
+              permisos acotados (ver y editar) según tu rol de administrador.
+            </p>
+            <a href="{% url 'admin:index' %}" class="btn btn-primary">
+              <i class="bi bi-box-arrow-up-right me-1"></i>Abrir administración de Django
+            </a>
+          </div>
         </div>
       </div>
+
     </div>
 
     {# ── Modal: Historial del paciente ── #}
@@ -284,59 +391,68 @@
       </div>
     </div>
 
-  </div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+
+  // ── Activar el tab indicado en ?tab=... ──
+  const params = new URLSearchParams(window.location.search);
+  const tab = params.get('tab');
+  if (tab) {
+    const el = document.querySelector(`[data-tab="${tab}"]`);
+    if (el) bootstrap.Tab.getOrCreateInstance(el).show();
+  }
+
+  // ── Filtros de la tabla de reservas ──
   const fTexto       = document.getElementById('f-texto');
   const fEstado      = document.getElementById('f-estado');
   const fConsultorio = document.getElementById('f-consultorio');
   const fLimpiar     = document.getElementById('f-limpiar');
   const filas        = Array.from(document.querySelectorAll('.reserva-row'));
 
-  if (!fEstado) return;
+  if (fEstado) {
+    // Poblar el select de consultorios con los que aparecen en las reservas.
+    const consultorios = [...new Set(filas.map(f => f.dataset.consultorio).filter(Boolean))].sort();
+    consultorios.forEach(function (c) {
+      const opt = document.createElement('option');
+      opt.value = c; opt.textContent = c;
+      fConsultorio.appendChild(opt);
+    });
 
-  // Poblar el select de consultorios con los que aparecen en las reservas.
-  const consultorios = [...new Set(filas.map(f => f.dataset.consultorio).filter(Boolean))].sort();
-  consultorios.forEach(function (c) {
-    const opt = document.createElement('option');
-    opt.value = c; opt.textContent = c;
-    fConsultorio.appendChild(opt);
-  });
+    function aplicarFiltros() {
+      const txt = (fTexto.value || '').toLowerCase().trim();
+      const est = fEstado.value;
+      const con = fConsultorio.value;
+      filas.forEach(function (f) {
+        const pac = (f.dataset.paciente || '').toLowerCase();
+        const pro = (f.dataset.profesional || '').toLowerCase();
+        const okTxt = !txt || pac.includes(txt) || pro.includes(txt);
+        const okEst = !est || f.dataset.estado === est;
+        const okCon = !con || f.dataset.consultorio === con;
+        f.style.display = (okTxt && okEst && okCon) ? '' : 'none';
+      });
+    }
 
-  function aplicarFiltros() {
-    const txt = (fTexto.value || '').toLowerCase().trim();
-    const est = fEstado.value;
-    const con = fConsultorio.value;
-    filas.forEach(function (f) {
-      const pac = (f.dataset.paciente || '').toLowerCase();
-      const pro = (f.dataset.profesional || '').toLowerCase();
-      const okTxt = !txt || pac.includes(txt) || pro.includes(txt);
-      const okEst = !est || f.dataset.estado === est;
-      const okCon = !con || f.dataset.consultorio === con;
-      f.style.display = (okTxt && okEst && okCon) ? '' : 'none';
+    fTexto.addEventListener('input', aplicarFiltros);
+    fEstado.addEventListener('change', aplicarFiltros);
+    fConsultorio.addEventListener('change', aplicarFiltros);
+    fLimpiar.addEventListener('click', function () {
+      fTexto.value = ''; fEstado.value = ''; fConsultorio.value = '';
+      aplicarFiltros();
+    });
+
+    // Click en un badge de estado de las cards → aplica el filtro y hace scroll.
+    document.querySelectorAll('.estado-filtro').forEach(function (el) {
+      el.addEventListener('click', function () {
+        fEstado.value = this.dataset.estado || '';
+        aplicarFiltros();
+        const tabla = document.getElementById('tabla-reservas');
+        if (tabla) tabla.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
     });
   }
-
-  fTexto.addEventListener('input', aplicarFiltros);
-  fEstado.addEventListener('change', aplicarFiltros);
-  fConsultorio.addEventListener('change', aplicarFiltros);
-  fLimpiar.addEventListener('click', function () {
-    fTexto.value = ''; fEstado.value = ''; fConsultorio.value = '';
-    aplicarFiltros();
-  });
-
-  // Click en un badge de estado de las cards → aplica el filtro y hace scroll.
-  document.querySelectorAll('.estado-filtro').forEach(function (el) {
-    el.addEventListener('click', function () {
-      fEstado.value = this.dataset.estado || '';
-      aplicarFiltros();
-      const tabla = document.getElementById('tabla-reservas');
-      if (tabla) tabla.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    });
-  });
 
   // ── Modal: cambiar estado de una reserva ──
   const modalRes   = document.getElementById('modalAdminReserva');

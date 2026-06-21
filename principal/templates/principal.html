@@ -7,67 +7,15 @@
   <link rel="stylesheet" href="{% static 'css/principal.css' %}"/>
 {% endblock %}
 
-{% block navbar %}
-  <ul class="navbar-nav me-auto gap-lg-1">
-    {% if user.is_authenticated %}
-      <li class="nav-item">
-        <a class="nav-link text-white active" href="{% url 'principal:principal' %}">Inicio</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link text-white" href="{% url 'mis_horas' %}">Mis horas</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link text-white" href="{% url 'consultorio' %}">Reservar hora</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link text-white" href="{% url 'cancelar_hora' %}">Cancelar hora</a>
-      </li>
-    {% else %}
-      <li class="nav-item">
-        <a class="nav-link text-white active" href="{% url 'principal:principal' %}">Inicio</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link text-white" href="{% url 'registro' %}">Crea tu cuenta</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link text-white" href="{% url 'login' %}">Ingresa</a>
-      </li>
-    {% endif %}
-  </ul>
-{% endblock %}
-
 {% block content %}
 
   {# ── Header de bienvenida ── #}
   {% if user.is_authenticated %}
-    <div class="mb-4 text-center">
-      <h1 class="fw-light mb-1">¡Bienvenido, {{ user.first_name }}!</h1>
-      <p class="text-muted fs-5 fw-light">Aquí puedes ver y gestionar tus citas médicas</p>
-    </div>
+    <h1 class="mb-1">¡Bienvenido, {{ user.first_name }}!</h1>
+    <p class="text-muted mb-4">Aquí puedes ver y gestionar tus citas médicas</p>
 
-    {% if confirmacion %}
-    <div class="alert {% if confirmacion.ya_tomado %}alert-warning{% else %}alert-success{% endif %} alert-dismissible fade show d-flex gap-3 align-items-start mb-4" role="alert">
-      <i class="bi {% if confirmacion.ya_tomado %}bi-exclamation-triangle-fill text-warning{% else %}bi-check-circle-fill text-success{% endif %} fs-4 mt-1"></i>
-      <div>
-        {% if confirmacion.ya_tomado %}
-          <strong>El horario ya fue tomado.</strong><br>
-          <span class="small">Por favor intenta reservar otro horario disponible.</span>
-        {% else %}
-          <strong>¡Cita agendada con éxito!</strong><br>
-          <span class="small">
-            <i class="bi bi-hospital me-1"></i>{{ confirmacion.consultorio }}<br>
-            <i class="bi bi-person-badge me-1"></i>{{ confirmacion.doctor }}<br>
-            <i class="bi bi-calendar3 me-1"></i>{{ confirmacion.fecha }}
-            &nbsp;<i class="bi bi-clock me-1"></i>{{ confirmacion.hora }}
-          </span>
-        {% endif %}
-      </div>
-      <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Cerrar"></button>
-    </div>
-    {% endif %}
-
-    <div class="card border-0 shadow-sm rounded-3 mb-4">
-      <div class="card-body p-4">
+    <div class="card rounded-3 mb-4">
+      <div class="card-body">
 
         <div class="d-flex justify-content-between align-items-start mb-2">
           <div>
@@ -90,11 +38,10 @@
         <div class="table-responsive">
           <table class="table table-hover align-middle mb-0" style="table-layout:fixed;width:100%;min-width:740px;">
             <colgroup>
-              <col style="width:115px">
+              <col style="width:135px">
               <col style="width:125px">
               <col style="width:130px">
               <col style="width:110px">
-              <col style="width:90px">
               <col style="width:155px">
               <col style="width:115px">
             </colgroup>
@@ -104,7 +51,6 @@
                 <th class="fw-bold text-nowrap">Doctor</th>
                 <th class="fw-bold text-nowrap">Fecha y hora</th>
                 <th class="fw-bold text-nowrap">Motivo</th>
-                <th class="fw-bold text-nowrap">Ubicación</th>
                 <th class="fw-bold text-nowrap">Estado</th>
                 <th class="fw-bold text-nowrap">Seguimiento</th>
               </tr>
@@ -113,9 +59,12 @@
               {% if reservas %}
                 {% for reserva in reservas %}
                   <tr>
-                    <td>
-                      <i class="bi bi-building me-1 text-muted"></i>
-                      {{ reserva.consultorio.nombre }}
+                    <td class="td-truncate" data-bs-toggle="tooltip" data-bs-title="{{ reserva.consultorio.nombre }}">
+                      <a href="https://www.google.com/maps?q={{ reserva.consultorio.latitud|stringformat:"f" }},{{ reserva.consultorio.longitud|stringformat:"f" }}"
+                         target="_blank"
+                         class="text-decoration-none link-primary">
+                        <i class="bi bi-geo-alt text-danger me-1"></i>{{ reserva.consultorio.nombre }}
+                      </a>
                     </td>
                     <td>
                       {% if reserva.profesional %}
@@ -131,33 +80,11 @@
                       <div class="text-nowrap"><i class="bi bi-calendar3 me-1 text-muted"></i>{{ reserva.fecha_reserva|date:"d-m-Y" }}</div>
                       <div class="text-nowrap small text-muted"><i class="bi bi-clock me-1"></i>{{ reserva.fecha_reserva|date:"H:i" }}</div>
                     </td>
-                    <td>
-                      <div class="col-instruccion" title="{{ reserva.motivo }}">{{ reserva.motivo }}</div>
-                    </td>
-                    <td>
-                      <a href="https://www.google.com/maps?q={{ reserva.consultorio.latitud }},{{ reserva.consultorio.longitud }}"
-                         target="_blank"
-                         rel="noopener"
-                         class="text-primary text-decoration-none">
-                        {{ reserva.consultorio.direccion }}
-                      </a>
+                    <td data-bs-toggle="tooltip" data-bs-title="{{ reserva.motivo }}">
+                      <div class="col-instruccion">{{ reserva.motivo }}</div>
                     </td>
                     <td class="td-estado">
-                      {% if reserva.estado == "confirmada" %}
-                        <span class="badge badge-estado bg-confirmado">Confirmada</span>
-                      {% elif reserva.estado == "pendiente" %}
-                        <span class="badge badge-estado bg-pendiente">Pendiente</span>
-                      {% elif reserva.estado == "completada" %}
-                        <span class="badge badge-estado bg-completada">Completada</span>
-                      {% elif reserva.estado == "seguimiento" %}
-                        <span class="badge badge-estado bg-seguimiento">Seguimiento</span>
-                      {% elif reserva.estado == "cancelada" %}
-                        <span class="badge badge-estado bg-secondary">Cancelada</span>
-                      {% elif reserva.estado == "no_asistio" %}
-                        <span class="badge badge-estado bg-no-asistio">No asistió</span>
-                      {% else %}
-                        <span class="badge badge-estado bg-secondary">{{ reserva.estado }}</span>
-                      {% endif %}
+                      {% include "_badge_estado.html" with estado=reserva.estado %}
                       {% if reserva.notas_doctor %}
                         <div class="col-instruccion small text-muted fst-italic mt-1"
                              title="{{ reserva.notas_doctor }}">
@@ -165,19 +92,14 @@
                         </div>
                       {% endif %}
                     </td>
-                    <td>
-                      {% if reserva.fecha_seguimiento %}
-                        <i class="bi bi-calendar-check me-1 text-muted"></i>
-                        {{ reserva.fecha_seguimiento|date:"d-m-Y" }}
-                      {% else %}
-                        <span class="text-muted">—</span>
-                      {% endif %}
+                    <td class="td-nowrap">
+                      {{ reserva.fecha_seguimiento|date:"d/m/Y"|default:"—" }}
                     </td>
                   </tr>
                 {% endfor %}
               {% else %}
                 <tr>
-                  <td colspan="7" class="text-center text-muted py-5">
+                  <td colspan="6" class="text-center text-muted py-5">
                     <i class="bi bi-calendar-check fs-2 d-block mb-3 text-primary opacity-50"></i>
                     <div class="fw-semibold mb-1">No tienes citas próximas</div>
                     <div class="small mb-3">Agenda una cita con tu médico cuando la necesites</div>
@@ -196,8 +118,8 @@
 
       {# — Información importante — #}
       <div class="col-12 col-md-6">
-        <div class="card border-0 shadow-sm rounded-3 h-100">
-          <div class="card-body p-4">
+        <div class="card rounded-3 h-100">
+          <div class="card-body">
             <h5 class="fw-semibold mb-3">Información importante</h5>
             <ul class="list-unstyled mb-0 info-list">
               <li>
@@ -223,8 +145,8 @@
 
       {# — Contacto de emergencia — #}
       <div class="col-12 col-md-6">
-        <div class="card border-0 shadow-sm rounded-3 h-100">
-          <div class="card-body p-4">
+        <div class="card rounded-3 h-100">
+          <div class="card-body">
             <h5 class="fw-semibold mb-3">
               <i class="bi bi-telephone-fill me-2"></i>Contacto de emergencia
             </h5>

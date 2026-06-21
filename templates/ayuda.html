@@ -5,81 +5,14 @@
 
 {% block extra_css %}
   <link rel="stylesheet" href="{% static 'css/principal.css' %}"/>
-  <style>
-    .accordion-item {
-      border: none;
-      border-bottom: 1px solid #e0e7ef;
-      border-radius: 0 !important;
-    }
-    .accordion-button {
-      font-weight: 500;
-      color: #1a3a5c;
-      background-color: #ffffff;
-      box-shadow: none;
-      padding: 1.1rem 1.25rem;
-    }
-    .accordion-button:not(.collapsed) {
-      color: #1a3a5c;
-      background-color: #eef3fa;
-      border-left: 3px solid #1a3a5c;
-      font-weight: 600;
-      box-shadow: none;
-    }
-    .accordion-button::after {
-      filter: invert(20%) sepia(50%) saturate(500%)
-              hue-rotate(190deg) brightness(60%);
-    }
-    .accordion-body {
-      background-color: #eef3fa;
-      border-left: 3px solid #1a3a5c;
-      color: #344a5e;
-      padding: 1rem 1.5rem;
-    }
-    .accordion-item:first-child .accordion-button {
-      border-radius: 8px 8px 0 0 !important;
-    }
-    .accordion-item:last-child {
-      border-bottom: none;
-      border-radius: 0 0 8px 8px !important;
-    }
-    .faq-card {
-      border-radius: 8px;
-      overflow: hidden;
-      box-shadow: 0 2px 8px rgba(26,58,92,0.08);
-    }
-    .estado-table {
-      width: 100%;
-      border-collapse: separate;
-      border-spacing: 0 6px;
-    }
-    .estado-table td {
-      padding: 4px 12px;
-      vertical-align: middle;
-    }
-    .estado-table td:first-child {
-      width: 130px;
-    }
-  </style>
-{% endblock %}
-
-{% block navbar %}
-  <ul class="navbar-nav me-auto gap-lg-1">
-    <li class="nav-item">
-      <a class="nav-link text-white" href="{% url 'principal:principal' %}">Inicio</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link text-white active" aria-current="page" href="{% url 'principal:ayuda' %}">Ayuda</a>
-    </li>
-  </ul>
 {% endblock %}
 
 {% block content %}
-  <div class="container-xl py-3">
 
     {# ── Sección 1: Header ── #}
     <div class="card mb-4">
-      <div class="card-body p-4">
-        <h1 class="h3 mb-1">
+      <div class="card-body">
+        <h1 class="mb-1">
           <i class="bi bi-question-circle me-2"></i>Ayuda y Contacto
         </h1>
         <p class="text-muted mb-0">Encuentra respuestas rápidas o contáctanos directamente</p>
@@ -88,7 +21,7 @@
 
     {# ── Sección 2: Preguntas frecuentes ── #}
     <div class="card mb-4">
-      <div class="card-body p-4">
+      <div class="card-body">
         <h2 class="h5 mb-3">Preguntas frecuentes</h2>
 
         <div class="faq-card">
@@ -97,12 +30,12 @@
           {# P1 #}
           <div class="accordion-item">
             <h3 class="accordion-header">
-              <button class="accordion-button" type="button" data-bs-toggle="collapse"
-                      data-bs-target="#faq1" aria-expanded="true" aria-controls="faq1">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                      data-bs-target="#faq1" aria-expanded="false" aria-controls="faq1">
                 ¿Cómo reservo una hora médica?
               </button>
             </h3>
-            <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+            <div id="faq1" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
               <div class="accordion-body">
                 Inicia sesión, ve a "Reservar hora" en el menú, selecciona tu región, comuna,
                 consultorio, doctor, fecha y horario disponible. Confirma el resumen antes de agendar.
@@ -234,7 +167,7 @@
       <div class="col-12 col-md-4">
         <div class="card h-100 text-center">
           <div class="card-body">
-            <i class="bi bi-telephone fs-1 text-primary d-block mb-2" style="color: #1a3a5c !important;"></i>
+            <i class="bi bi-telephone fs-1 text-primary d-block mb-2"></i>
             <h3 class="h6 fw-bold mb-1">Teléfono</h3>
             <p class="mb-1">+56 2 2345 6789</p>
             <p class="text-muted small mb-0">Lunes a viernes, 8:00 - 17:00</p>
@@ -245,7 +178,7 @@
       <div class="col-12 col-md-4">
         <div class="card h-100 text-center">
           <div class="card-body">
-            <i class="bi bi-envelope fs-1 d-block mb-2" style="color: #1a3a5c !important;"></i>
+            <i class="bi bi-envelope fs-1 text-primary d-block mb-2"></i>
             <h3 class="h6 fw-bold mb-1">Correo</h3>
             <p class="mb-1">contacto@consultoriodigital.cl</p>
             <p class="text-muted small mb-0">Respuesta en 24-48 horas hábiles</p>
@@ -266,5 +199,4 @@
 
     </div>
 
-  </div>
 {% endblock %}

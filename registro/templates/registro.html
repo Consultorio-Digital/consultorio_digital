@@ -8,26 +8,12 @@
   <link rel="stylesheet" href="{% static 'css/login.css' %}"/>
 {% endblock %}
 
-{% block navbar %}
-  <ul class="navbar-nav me-auto gap-lg-1">
-    <li class="nav-item">
-      <a class="nav-link text-white" href="{% url 'principal:principal' %}">Página principal</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link text-white active" aria-current="page" href="#">Crea tu cuenta</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link text-white" href="{% url 'login' %}">Ingresa</a>
-    </li>
-  </ul>
-{% endblock %}
-
 {% block content %}
 <div class="row justify-content-center align-items-center login-wrapper">
   <div class="col-11 col-sm-9 col-md-7 col-lg-5 col-xl-4">
 
-    <div class="card border-0 shadow login-card">
-      <div class="card-body p-4 p-md-5">
+    <div class="card login-card">
+      <div class="card-body">
 
         {# ── Brand ── #}
         <h4 class="text-center fw-bold mb-4">
