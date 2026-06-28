@@ -12,6 +12,9 @@ def home(request: HttpRequest):
     if not request.user.is_authenticated:
         return redirect('login')
 
+    # Cierra las pendientes vencidas antes de mostrar nada (idempotente).
+    Reserva.expirar_pendientes()
+
     if Administrador.objects.filter(usuario__rut=request.user.username).first():
         return redirect('principal:panel_admin')
 
@@ -64,6 +67,9 @@ def panel_doctor(request: HttpRequest):
     if profesional is None:
         return redirect('/')
 
+    # Cierra las pendientes vencidas antes de calcular tarjetas/listados.
+    Reserva.expirar_pendientes()
+
     ahora = timezone.now()
     hoy   = timezone.localdate()
 
@@ -98,11 +104,10 @@ def panel_doctor(request: HttpRequest):
         profesional=profesional, estado__in=['completada', 'seguimiento']
     ).count()
 
-    # Citas pasadas que quedaron sin gestionar (vencidas y aún activas).
+    # Pendientes vencidas sin confirmar, ya cerradas como 'sin_gestionar'.
     sin_gestionar = Reserva.objects.filter(
         profesional=profesional,
-        fecha_reserva__lt=ahora,
-        estado__in=['pendiente', 'confirmada'],
+        estado='sin_gestionar',
     ).count()
 
     disponibilidades = (
@@ -110,6 +115,16 @@ def panel_doctor(request: HttpRequest):
         .filter(profesional=profesional, fecha__gte=hoy)
         .order_by('fecha', 'hora_inicio')
     )
+
+    # Datos para el calendario de disponibilidad (vista doctor).
+    disponibilidades_cal = [
+        {
+            'fecha' : d.fecha.isoformat(),
+            'inicio': d.hora_inicio.strftime('%H:%M'),
+            'fin'   : d.hora_fin.strftime('%H:%M'),
+        }
+        for d in disponibilidades
+    ]
 
     # Historial completo (pasadas y futuras), lo más reciente primero.
     historial = (
@@ -149,6 +164,7 @@ def panel_doctor(request: HttpRequest):
             "completadas_seguimiento"   : completadas_seguimiento,
             "sin_gestionar"             : sin_gestionar,
             "disponibilidades"          : disponibilidades,
+            "disponibilidades_cal"      : disponibilidades_cal,
             "historial"                 : historial,
             "hoy"                       : hoy,
             "regiones"                  : regiones,
@@ -165,6 +181,9 @@ def ayuda(request):
 def panel_admin(request: HttpRequest):
     if not Administrador.objects.filter(usuario__rut=request.user.username).exists():
         return HttpResponse("No autorizado", status=403)
+
+    # Cierra las pendientes vencidas antes de calcular estadísticas.
+    Reserva.expirar_pendientes()
 
     reservas_por_estado = (
         Reserva.objects

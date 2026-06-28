@@ -241,7 +241,8 @@ def obtener_slots(request):
     ]
     return JsonResponse(free, safe=False)
 
-@login_required(login_url='/login/')
+# Geodata pública (centros de salud): accesible sin login para que la cascada
+# región→comuna→consultorio funcione también en el registro de profesionales.
 def obtener_comunas(request, c_reg):
     comunas = (
         Consultorio
@@ -253,7 +254,6 @@ def obtener_comunas(request, c_reg):
     )
     return JsonResponse(list(comunas), safe=False)
 
-@login_required(login_url='/login/')
 def obtener_consultorios(request, c_com):
     consultorios = (
         Consultorio

@@ -108,12 +108,13 @@ class Consultorio(models.Model):
 
 class Reserva(models.Model):
     ESTADO_CHOICES = [
-        ('pendiente',   'Pendiente'),
-        ('confirmada',  'Confirmada'),
-        ('completada',  'Completada'),
-        ('seguimiento', 'Seguimiento'),
-        ('cancelada',   'Cancelada'),
-        ('no_asistio',  'No asistió'),
+        ('pendiente',     'Pendiente'),
+        ('confirmada',    'Confirmada'),
+        ('completada',    'Completada'),
+        ('seguimiento',   'Seguimiento'),
+        ('cancelada',     'Cancelada'),
+        ('no_asistio',    'No asistió'),
+        ('sin_gestionar', 'Sin gestionar'),
     ]
     consultorio      = models.ForeignKey(Consultorio, on_delete=models.CASCADE, related_name='reservas')
     paciente         = models.ForeignKey(Paciente, on_delete=models.CASCADE, related_name='reservas')
@@ -135,7 +136,28 @@ class Reserva(models.Model):
 
     def __str__(self):
         return f'Reserva de {self.paciente} en {self.consultorio.nombre} el {self.fecha_reserva}'
-    
+
+    @classmethod
+    def expirar_pendientes(cls, ahora=None):
+        """Marca como 'sin_gestionar' las reservas que quedaron sin confirmar
+        después de su fecha/hora.
+
+        Solo afecta a las 'pendiente' vencidas: si el profesional no las
+        confirmó antes de la cita, dejan de aparecer como pendientes activas y
+        pasan a un estado de cierre que el doctor puede revisar. Las
+        'confirmada' vencidas no se tocan (las cierra el doctor con
+        completar / no asistió). Idempotente.
+
+        Devuelve la cantidad de reservas actualizadas.
+        """
+        from django.utils import timezone
+        ahora = ahora or timezone.now()
+        return (
+            cls.objects
+            .filter(estado='pendiente', fecha_reserva__lt=ahora)
+            .update(estado='sin_gestionar')
+        )
+
 class Disponibilidad(models.Model):
     profesional = models.ForeignKey(Profesional, on_delete=models.CASCADE, related_name='disponibilidades')
     fecha       = models.DateField()

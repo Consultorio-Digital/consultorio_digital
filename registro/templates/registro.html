@@ -6,6 +6,18 @@
 
 {% block extra_css %}
   <link rel="stylesheet" href="{% static 'css/login.css' %}"/>
+  <style>
+    .active-toggle {
+      background-color: #1a3a5c;
+      color: white;
+      font-weight: 600;
+    }
+    .inactive-toggle {
+      background-color: transparent;
+      color: #1a3a5c;
+      font-weight: 500;
+    }
+  </style>
 {% endblock %}
 
 {% block content %}
@@ -34,10 +46,70 @@
           </li>
         </ul>
 
-        {# ── Formulario Crispy ── #}
+        {# ── Formulario ── #}
         <form method="POST" novalidate>
           {% csrf_token %}
-          {{ form|crispy }}
+
+          {# Selector de tipo de cuenta (toggle) #}
+          <div class="mb-3">
+            <label class="form-label fw-semibold d-block mb-2">Tipo de cuenta</label>
+            {# El valor de `tipo` viaja en este hidden; setTipo() lo actualiza. #}
+            <input type="hidden" name="tipo" id="id_tipo"
+                   value="{{ form.tipo.value|default:'paciente' }}">
+            <div class="d-flex rounded-3 overflow-hidden border"
+                 style="border-color: #dee2e6 !important">
+              <button type="button" id="btn-paciente"
+                      class="btn flex-fill py-2 active-toggle"
+                      onclick="setTipo('paciente')">
+                <i class="bi bi-person me-1"></i> Paciente
+              </button>
+              <button type="button" id="btn-profesional"
+                      class="btn flex-fill py-2"
+                      onclick="setTipo('profesional')">
+                <i class="bi bi-person-badge me-1"></i> Profesional
+              </button>
+            </div>
+          </div>
+
+          {# Sección profesional: aparece solo si tipo = profesional #}
+          <div id="div-profesional" class="d-none">
+            <div class="mb-3">
+              <label class="form-label" for="id_especialidad">Especialidad</label>
+              <input type="text" name="especialidad" id="id_especialidad"
+                     class="form-control login-input{% if form.especialidad.errors %} is-invalid{% endif %}"
+                     value="{{ form.especialidad.value|default_if_none:'' }}"
+                     placeholder="Ej: Medicina General, Odontología...">
+              {% for e in form.especialidad.errors %}
+                <div class="invalid-feedback d-block">{{ e }}</div>
+              {% endfor %}
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Recinto <span class="text-muted fw-normal">(opcional)</span></label>
+              <div class="row g-2">
+                <div class="col-12">
+                  <select class="form-select login-input" id="reg-region">
+                    <option value="">Selecciona región</option>
+                    {% for region in regiones %}
+                      <option value="{{ region.c_reg }}">{{ region.nom_reg }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+                <div class="col-12">
+                  <select class="form-select login-input" id="reg-comuna" disabled>
+                    <option value="">Selecciona comuna</option>
+                  </select>
+                </div>
+                <div class="col-12">
+                  <select class="form-select login-input" id="reg-consultorio" name="consultorio" disabled>
+                    <option value="">Selecciona consultorio</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-text">Puedes elegirlo ahora o más tarde desde tu panel.</div>
+            </div>
+          </div>
+
+          {% crispy form %}
           <button type="submit" class="btn btn-primary w-100 fw-bold login-btn mt-2">
             Registrarse
           </button>
@@ -56,17 +128,73 @@
 
 {% block extra_js %}
 <script>
+// Alterna el tipo de cuenta: actualiza el hidden `tipo`, las clases del
+// toggle y muestra/oculta la sección profesional. Global porque se invoca
+// desde onclick en los botones.
+function setTipo(tipo) {
+  const esProf = tipo === 'profesional';
+  const hidden = document.getElementById('id_tipo');
+  const btnPac = document.getElementById('btn-paciente');
+  const btnPro = document.getElementById('btn-profesional');
+  const divProf = document.getElementById('div-profesional');
+  const espInput = document.getElementById('id_especialidad');
+
+  if (hidden) hidden.value = tipo;
+
+  if (btnPac) {
+    btnPac.classList.toggle('active-toggle', !esProf);
+    btnPac.classList.toggle('inactive-toggle', esProf);
+  }
+  if (btnPro) {
+    btnPro.classList.toggle('active-toggle', esProf);
+    btnPro.classList.toggle('inactive-toggle', !esProf);
+  }
+
+  if (divProf) divProf.classList.toggle('d-none', !esProf);
+  if (espInput) espInput.required = esProf;   // especialidad obligatoria (cliente)
+}
+
 document.addEventListener('DOMContentLoaded', function () {
 
-  // ── Toggle especialidad ──────────────────────────────────────────────
-  const tipo   = document.getElementById('id_tipo');
-  const divEsp = document.getElementById('div-especialidad');
-  if (tipo && divEsp) {
-    function toggleEspecialidad() {
-      divEsp.style.display = tipo.value === 'profesional' ? '' : 'none';
-    }
-    toggleEspecialidad();
-    tipo.addEventListener('change', toggleEspecialidad);
+  // ── Registro dinámico: sincroniza el estado inicial del toggle ────────
+  // (refleja el valor enviado si el formulario se re-renderiza con errores).
+  const tipoInicial = document.getElementById('id_tipo');
+  setTipo(tipoInicial ? tipoInicial.value : 'paciente');
+
+  // ── Cascada Región → Comuna → Consultorio (recinto del profesional) ───
+  const regRegion = document.getElementById('reg-region');
+  const regComuna = document.getElementById('reg-comuna');
+  const regConsul = document.getElementById('reg-consultorio');
+
+  if (regRegion && regComuna && regConsul) {
+    regRegion.addEventListener('change', function () {
+      regComuna.innerHTML = '<option value="">Selecciona comuna</option>';
+      regConsul.innerHTML = '<option value="">Selecciona consultorio</option>';
+      regComuna.disabled = true; regConsul.disabled = true;
+      if (!this.value) return;
+      fetch(`/consultorio/obtener_comunas/${parseInt(this.value)}/`)
+        .then(r => r.json())
+        .then(data => {
+          data.forEach(c => {
+            regComuna.innerHTML += `<option value="${c.c_com}">${c.nom_com}</option>`;
+          });
+          regComuna.disabled = false;
+        });
+    });
+
+    regComuna.addEventListener('change', function () {
+      regConsul.innerHTML = '<option value="">Selecciona consultorio</option>';
+      regConsul.disabled = true;
+      if (!this.value) return;
+      fetch(`/consultorio/obtener_consultorios/${this.value}/`)
+        .then(r => r.json())
+        .then(data => {
+          data.forEach(c => {
+            regConsul.innerHTML += `<option value="${c.objectid}">${c.nombre}</option>`;
+          });
+          regConsul.disabled = false;
+        });
+    });
   }
 
   // ── Auto-formato fecha de nacimiento (DD / MM / AAAA) ────────────────

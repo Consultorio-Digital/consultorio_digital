@@ -59,12 +59,15 @@
         </div>
       </div>
       <div class="col-6 col-md-3">
-        <div class="card stat-card h-100" style="border-top-color: #E74C3C">
+        <button type="button"
+                class="card stat-card h-100 w-100 border-0 text-start p-0" id="card-sin-gestionar"
+                style="border-top: 3px solid #7A8794; cursor: pointer;"
+                title="Ver citas sin gestionar en el historial">
           <div class="card-body d-flex flex-column align-items-center justify-content-center py-3">
             <div class="stat-label"><i class="bi bi-exclamation-triangle"></i> Sin gestionar</div>
-            <div class="stat-num" style="color: #E74C3C">{{ sin_gestionar }}</div>
+            <div class="stat-num" style="color: #7A8794">{{ sin_gestionar }}</div>
           </div>
-        </div>
+        </button>
       </div>
     </div>
 
@@ -214,33 +217,35 @@
             {% endif %}
           </div>
 
-          {# ── Tab 3: Disponibilidades ── #}
+          {# ── Tab 3: Disponibilidades (calendario) ── #}
           <div class="tab-pane fade" id="pane-disp" role="tabpanel">
-            {% if disponibilidades %}
-              <table class="table table-hover align-middle mb-0">
-                <thead>
-                  <tr>
-                    <th scope="col">Fecha</th>
-                    <th scope="col">Hora inicio</th>
-                    <th scope="col">Hora fin</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {% for disp in disponibilidades %}
-                    <tr>
-                      <td class="text-nowrap">{{ disp.fecha|date:"d/m/Y" }}</td>
-                      <td class="text-nowrap">{{ disp.hora_inicio|time:"H:i" }}</td>
-                      <td class="text-nowrap">{{ disp.hora_fin|time:"H:i" }}</td>
-                    </tr>
-                  {% endfor %}
-                </tbody>
-              </table>
-            {% else %}
-              <div class="text-center text-muted py-5">
-                <i class="bi bi-clock fs-1 d-block mb-2"></i>
-                No tienes disponibilidades registradas
+            {{ disponibilidades_cal|json_script:"disp-data" }}
+            <div class="row g-4">
+              {# Calendario mensual #}
+              <div class="col-lg-7">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  <button type="button" class="btn btn-sm btn-outline-secondary" id="cal-prev"
+                          title="Mes anterior"><i class="bi bi-chevron-left"></i></button>
+                  <h3 class="h6 fw-bold mb-0 text-capitalize" id="cal-titulo">—</h3>
+                  <button type="button" class="btn btn-sm btn-outline-secondary" id="cal-next"
+                          title="Mes siguiente"><i class="bi bi-chevron-right"></i></button>
+                </div>
+                <div class="cal-grid" id="cal-grid"></div>
+                <p class="small text-muted mt-3 mb-0">
+                  <span class="cal-leyenda-dot"></span> Día con disponibilidad declarada.
+                  Para agregar más, usa la pestaña <span class="fw-semibold">Gestionar</span>.
+                </p>
               </div>
-            {% endif %}
+              {# Detalle del día seleccionado #}
+              <div class="col-lg-5">
+                <div class="cal-detalle" id="cal-detalle">
+                  <div class="text-center text-muted py-5">
+                    <i class="bi bi-calendar-week fs-1 d-block mb-2"></i>
+                    Selecciona un día resaltado para ver sus horarios.
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
           {# ── Tab 4: Historial ── #}
@@ -264,6 +269,7 @@
                     <option value="seguimiento">Seguimiento</option>
                     <option value="cancelada">Cancelada</option>
                     <option value="no_asistio">No asistió</option>
+                    <option value="sin_gestionar">Sin gestionar</option>
                   </select>
                 </div>
                 <div class="col-sm-2 col-md-4 text-sm-end">
@@ -427,10 +433,11 @@
   <div class="modal fade" id="modalCompletar" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
-        <form method="post" action="{% url 'actualizar_reserva' %}">
+        <form method="post" action="{% url 'actualizar_reserva' %}" id="form-completar">
           {% csrf_token %}
           <input type="hidden" name="reserva_id" value="">
-          <input type="hidden" name="nuevo_estado" value="completada">
+          {# JS alterna este valor a 'seguimiento' si se agenda control. #}
+          <input type="hidden" name="nuevo_estado" value="completada" id="completar-estado">
 
           <div class="modal-header">
             <h5 class="modal-title">Completar consulta</h5>
@@ -451,11 +458,29 @@
               Solo para coordinación de la cita. No registres información clínica aquí
               (diagnósticos, medicación, etc.)
             </div>
+
+            {# ── Seguimiento opcional: Completado → Seguimiento en un solo paso ── #}
+            <hr class="my-3">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="completar-agendar-seg">
+              <label class="form-check-label fw-semibold" for="completar-agendar-seg">
+                Agendar seguimiento de este paciente
+              </label>
+            </div>
+            <div id="completar-seg-fecha-wrap" class="mt-2 d-none">
+              <label class="form-label" for="completar-seg-fecha">Fecha de seguimiento</label>
+              <input type="date" class="form-control" id="completar-seg-fecha"
+                     name="fecha_seguimiento" min="{{ hoy|date:'Y-m-d' }}">
+              <div class="form-text">
+                La cita quedará como <span class="fw-semibold">Seguimiento</span> y aparecerá
+                en las próximas citas del paciente.
+              </div>
+            </div>
           </div>
 
           <div class="modal-footer">
             <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
-            <button type="submit" class="btn btn-success">
+            <button type="submit" class="btn btn-success" id="completar-submit">
               <i class="bi bi-check-lg me-1"></i>Marcar como completada
             </button>
           </div>
@@ -526,6 +551,36 @@ document.addEventListener('DOMContentLoaded', function () {
   vincularModal('modalCompletar');
   vincularModal('modalSeguimiento');
 
+  // ── Completar consulta: seguimiento opcional (Completado → Seguimiento) ──
+  const segCheck  = document.getElementById('completar-agendar-seg');
+  const segWrap   = document.getElementById('completar-seg-fecha-wrap');
+  const segFecha  = document.getElementById('completar-seg-fecha');
+  const segEstado = document.getElementById('completar-estado');
+  const segSubmit = document.getElementById('completar-submit');
+  const modalComp = document.getElementById('modalCompletar');
+
+  function aplicarSeguimiento() {
+    const activo = segCheck.checked;
+    segWrap.classList.toggle('d-none', !activo);
+    segFecha.required = activo;
+    if (!activo) segFecha.value = '';
+    segEstado.value = activo ? 'seguimiento' : 'completada';
+    segSubmit.innerHTML = activo
+      ? '<i class="bi bi-calendar-check me-1"></i>Completar y agendar seguimiento'
+      : '<i class="bi bi-check-lg me-1"></i>Marcar como completada';
+  }
+
+  if (segCheck) {
+    segCheck.addEventListener('change', aplicarSeguimiento);
+    // Reinicia el estado del seguimiento cada vez que se abre el modal.
+    if (modalComp) {
+      modalComp.addEventListener('show.bs.modal', function () {
+        segCheck.checked = false;
+        aplicarSeguimiento();
+      });
+    }
+  }
+
   // ── Activar el tab indicado en ?tab=... al volver de una acción ──
   const params = new URLSearchParams(window.location.search);
   const tab = params.get('tab');
@@ -577,6 +632,124 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
+  // ── Calendario de disponibilidad ──────────────────────────────────────
+  const calGrid    = document.getElementById('cal-grid');
+  const calTitulo  = document.getElementById('cal-titulo');
+  const calDetalle = document.getElementById('cal-detalle');
+  const dispDataEl  = document.getElementById('disp-data');
+
+  if (calGrid && calTitulo && dispDataEl) {
+    const MESES = ['enero','febrero','marzo','abril','mayo','junio',
+                   'julio','agosto','septiembre','octubre','noviembre','diciembre'];
+    const DIAS  = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
+
+    // Agrupa la disponibilidad por fecha (YYYY-MM-DD → [{inicio,fin}, ...]).
+    let disp = [];
+    try { disp = JSON.parse(dispDataEl.textContent) || []; } catch (e) { disp = []; }
+    const porFecha = {};
+    disp.forEach(function (d) {
+      (porFecha[d.fecha] = porFecha[d.fecha] || []).push({ inicio: d.inicio, fin: d.fin });
+    });
+
+    const hoy = new Date();
+    const hoyStr = [hoy.getFullYear(),
+                    String(hoy.getMonth() + 1).padStart(2, '0'),
+                    String(hoy.getDate()).padStart(2, '0')].join('-');
+
+    // Arranca en el mes de la primera disponibilidad futura, o el mes actual.
+    const fechasOrden = Object.keys(porFecha).sort();
+    let cursor;
+    if (fechasOrden.length) {
+      const p = fechasOrden[0].split('-');
+      cursor = new Date(parseInt(p[0]), parseInt(p[1]) - 1, 1);
+    } else {
+      cursor = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+    }
+
+    function minutos(hhmm) {
+      const p = hhmm.split(':');
+      return parseInt(p[0]) * 60 + parseInt(p[1]);
+    }
+
+    function mostrarDetalle(fechaStr) {
+      const rangos = porFecha[fechaStr] || [];
+      const p = fechaStr.split('-');
+      const dObj = new Date(parseInt(p[0]), parseInt(p[1]) - 1, parseInt(p[2]));
+      const titulo = dObj.getDate() + ' de ' + MESES[dObj.getMonth()] + ' de ' + dObj.getFullYear();
+
+      let slots = 0;
+      const filas = rangos
+        .slice()
+        .sort(function (a, b) { return minutos(a.inicio) - minutos(b.inicio); })
+        .map(function (r) {
+          slots += Math.max(0, Math.round((minutos(r.fin) - minutos(r.inicio)) / 30));
+          return '<li class="cal-rango"><i class="bi bi-clock me-2 text-primary"></i>'
+               + r.inicio + ' – ' + r.fin + '</li>';
+        }).join('');
+
+      calDetalle.innerHTML =
+        '<h3 class="h6 fw-bold mb-1 text-capitalize">' + titulo + '</h3>'
+        + '<p class="small text-muted mb-3">' + slots + ' bloque(s) de 30 min</p>'
+        + '<ul class="list-unstyled mb-0">' + filas + '</ul>';
+    }
+
+    function render() {
+      const anio = cursor.getFullYear();
+      const mes  = cursor.getMonth();
+      calTitulo.textContent = MESES[mes] + ' ' + anio;
+
+      // Lunes = 0 ... Domingo = 6
+      const primero = new Date(anio, mes, 1);
+      let offset = primero.getDay() - 1;
+      if (offset < 0) offset = 6;
+      const diasMes = new Date(anio, mes + 1, 0).getDate();
+
+      let html = '<div class="cal-row cal-head">';
+      DIAS.forEach(function (d) { html += '<div class="cal-cell cal-dow">' + d + '</div>'; });
+      html += '</div><div class="cal-row">';
+
+      let col = 0;
+      for (let i = 0; i < offset; i++) { html += '<div class="cal-cell cal-empty"></div>'; col++; }
+
+      for (let dia = 1; dia <= diasMes; dia++) {
+        if (col === 7) { html += '</div><div class="cal-row">'; col = 0; }
+        const fechaStr = anio + '-' + String(mes + 1).padStart(2, '0') + '-' + String(dia).padStart(2, '0');
+        const tiene = !!porFecha[fechaStr];
+        const esHoy = fechaStr === hoyStr;
+        let cls = 'cal-cell cal-day';
+        if (tiene) cls += ' cal-has';
+        if (esHoy) cls += ' cal-today';
+        const attr = tiene ? ' data-fecha="' + fechaStr + '" role="button" tabindex="0"' : '';
+        const marca = tiene ? '<span class="cal-marca">' + porFecha[fechaStr].length + '</span>' : '';
+        html += '<div class="' + cls + '"' + attr + '><span class="cal-num">' + dia + '</span>' + marca + '</div>';
+        col++;
+      }
+      while (col < 7 && col > 0) { html += '<div class="cal-cell cal-empty"></div>'; col++; }
+      html += '</div>';
+      calGrid.innerHTML = html;
+
+      calGrid.querySelectorAll('.cal-has').forEach(function (cell) {
+        cell.addEventListener('click', function () {
+          calGrid.querySelectorAll('.cal-sel').forEach(function (c) { c.classList.remove('cal-sel'); });
+          this.classList.add('cal-sel');
+          mostrarDetalle(this.dataset.fecha);
+        });
+        cell.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.click(); }
+        });
+      });
+    }
+
+    document.getElementById('cal-prev').addEventListener('click', function () {
+      cursor = new Date(cursor.getFullYear(), cursor.getMonth() - 1, 1); render();
+    });
+    document.getElementById('cal-next').addEventListener('click', function () {
+      cursor = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1); render();
+    });
+
+    render();
+  }
+
   // ── Filtro del historial: por nombre de paciente y por estado ──
   const histBuscar = document.getElementById('hist-buscar');
   const histEstado = document.getElementById('hist-estado');
@@ -605,6 +778,20 @@ document.addEventListener('DOMContentLoaded', function () {
     histBuscar.addEventListener('input', filtrarHistorial);
     histEstado.addEventListener('change', filtrarHistorial);
     filtrarHistorial();
+  }
+
+  // ── Tarjeta "Sin gestionar" → abre historial filtrado por ese estado ──
+  const cardSinGestionar = document.getElementById('card-sin-gestionar');
+  if (cardSinGestionar) {
+    cardSinGestionar.addEventListener('click', function () {
+      const tabHist = document.querySelector('[data-tab="historial"]');
+      if (tabHist) bootstrap.Tab.getOrCreateInstance(tabHist).show();
+      const sel = document.getElementById('hist-estado');
+      if (sel) {
+        sel.value = 'sin_gestionar';
+        sel.dispatchEvent(new Event('change'));
+      }
+    });
   }
 
   // ── Filas expandibles de notas del doctor (Historial) ──

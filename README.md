@@ -25,6 +25,22 @@ Ingeniería Civil en Informática — Universidad de Valparaíso.
 - Accede al admin de Django (`/admin/`) con permisos acotados mediante el
   grupo "Administradores" (sin ser superusuario), asignado por `crear_admin`.
 
+### Capacidades del profesional
+- Gestiona sus citas: confirmar, completar, marcar "no asistió".
+- Al completar una consulta puede agendar un seguimiento en el mismo paso
+  (Completado → Seguimiento).
+- Las citas pendientes que vencen sin confirmar pasan automáticamente a
+  "Sin gestionar".
+- Visualiza su disponibilidad en un calendario mensual (días y horarios)
+  y la administra desde la pestaña "Gestionar".
+
+### Cuenta de usuario
+- Registro dinámico: un toggle Paciente / Profesional adapta el formulario
+  (el profesional declara especialidad y, opcionalmente, su recinto vía
+  región → comuna → consultorio).
+- Recuperación de contraseña por correo (flujo de `django.contrib.auth`);
+  en desarrollo el correo se imprime en la consola.
+
 ## Levantar con Docker (recomendado)
 ```bash
 cp .env.docker .env
@@ -51,8 +67,9 @@ poetry run python manage.py runserver
 | Comando | Descripción |
 |---------|-------------|
 | cargar_consultorios | Carga 2.560 consultorios reales del MINSAL |
-| poblar_datos | Genera 6 profesionales, 10 pacientes, 20 reservas de prueba en Viña del Mar |
+| poblar_datos | Genera 6 profesionales, 10 pacientes y ~21 reservas de prueba en Viña del Mar (incluye un caso "sin gestionar") |
 | crear_admin | Crea o actualiza el administrador del sistema |
+| marcar_sin_gestionar | Marca como "sin gestionar" las reservas pendientes vencidas (idempotente; los paneles ya lo hacen en modo lazy) |
 
 ## Tests y Cobertura
 
@@ -68,8 +85,7 @@ poetry run pytest --cov=principal --cov=registro --cov=consultorio \
 ```
 
 ### Resultado actual
-- 110 tests en verde (79 unittest + 31 pytest)
-- Cobertura global: 81%
+- 126 tests en verde (79 unittest + 47 pytest)
 - registro/backends.py: 100%
 - consultorio/models.py: 98%
 - registro/forms.py: 95%

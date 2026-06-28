@@ -100,8 +100,13 @@ class RegisterForm(UserCreationForm):
                         input_formats=['%d / %m / %Y', '%d/%m/%Y', '%Y-%m-%d'],
                         widget=forms.TextInput(),
                     )
-    tipo            = forms.ChoiceField(choices=TIPO_CHOICES, initial='paciente')
+    tipo            = forms.ChoiceField(
+                        choices=TIPO_CHOICES, initial='paciente',
+                        widget=forms.RadioSelect,
+                    )
     especialidad    = forms.CharField(max_length=255, required=False)
+    # Asignación opcional de recinto para profesionales (objectid de Consultorio).
+    consultorio     = forms.IntegerField(required=False)
     usable_password = None
 
     def __init__(self, *args, **kwargs):
@@ -177,27 +182,34 @@ class RegisterForm(UserCreationForm):
         self.fields['especialidad'].help_text = 'Requerido si eres profesional'
         self.fields['especialidad'].widget.attrs['placeholder'] = 'Ej: Medicina General, Odontología...'
 
+        # `tipo`, `especialidad` y `consultorio` se renderizan manualmente en
+        # la plantilla (selector tipo en pills + sección profesional dinámica).
+        # render_unmentioned_fields=False evita que crispy los vuelva a pintar
+        # al final (la plantilla usa el TAG {% crispy form %}, que sí lo honra;
+        # el filtro |crispy NO lo respeta y duplicaría los campos).
         self.helper = FormHelper()
         self.helper.form_tag = False
+        self.helper.render_unmentioned_fields = False
         self.helper.layout = Layout(
-            Field('tipo',       css_class='login-input'),
-            HTML('''
-                <div id="div-especialidad">
-            '''),
-            Field('especialidad', css_class='login-input'),
-            HTML('</div>'),
+            Field('username',   css_class='login-input'),
             Field('email',      css_class='login-input'),
             Row(
                 Column(Field('first_name', css_class='login-input'), css_class='col-md-6'),
                 Column(Field('last_name',  css_class='login-input'), css_class='col-md-6'),
             ),
-            Field('username',   css_class='login-input'),
             Field('address',    css_class='login-input'),
             Field('phone',      css_class='login-input'),
             Field('birthdate',  css_class='login-input'),
             Field('password1',  css_class='login-input'),
             Field('password2',  css_class='login-input'),
         )
+
+    def clean(self):
+        cleaned = super().clean()
+        # La especialidad es obligatoria solo para profesionales.
+        if cleaned.get('tipo') == 'profesional' and not (cleaned.get('especialidad') or '').strip():
+            self.add_error('especialidad', 'La especialidad es obligatoria para profesionales.')
+        return cleaned
 
     def clean_username(self):
         # ── Mantén tu validación de RUT chileno existente ──

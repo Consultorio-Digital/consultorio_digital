@@ -154,6 +154,10 @@ LOGIN_REDIRECT_URL = "/"
 # Logout redirect
 LOGOUT_REDIRECT_URL = "/"
 
+# En desarrollo el correo (p. ej. recuperación de contraseña) se imprime en
+# la consola en lugar de enviarse.
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
 # Mapear el nivel ERROR de messages a la clase de alerta de Bootstrap
 # (no existe .alert-error; el componente global usa alert-{{ message.tags }}).
 from django.contrib.messages import constants as messages_constants

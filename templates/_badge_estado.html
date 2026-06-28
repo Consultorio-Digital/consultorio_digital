@@ -12,6 +12,8 @@ Usa las mismas clases que principal.html (definidas en principal.css).{% endcomm
   <span class="badge badge-estado bg-secondary">Cancelada</span>
 {% elif estado == "no_asistio" %}
   <span class="badge badge-estado bg-no-asistio">No asistió</span>
+{% elif estado == "sin_gestionar" %}
+  <span class="badge badge-estado bg-sin-gestionar">Sin gestionar</span>
 {% else %}
   <span class="badge badge-estado bg-secondary">{{ estado }}</span>
 {% endif %}

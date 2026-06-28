@@ -199,6 +199,24 @@ class Command(BaseCommand):
             )
             reservas_creadas += int(creada)
 
+        # ── 4b. Caso demo de "sin gestionar": pendiente ya vencida ──
+        # Queda 'pendiente' en el pasado; al abrir cualquier panel, la lógica
+        # de expiración la marca automáticamente como 'sin_gestionar'.
+        vencida_dt = timezone.make_aware(
+            datetime.combine(date.today() - timedelta(days=3), time(9, 0))
+        )
+        _, creada = Reserva.objects.get_or_create(
+            paciente=pacientes[-1],
+            profesional=profesionales[0],
+            fecha_reserva=vencida_dt,
+            defaults={
+                "consultorio": profesionales[0].consultorio or consultorios[0],
+                "motivo": "Cita no confirmada a tiempo",
+                "estado": "pendiente",
+            },
+        )
+        reservas_creadas += int(creada)
+
         # ── Resumen ─────────────────────────────────────────────────────
         self.stdout.write(self.style.SUCCESS("\nDatos de prueba poblados:"))
         self.stdout.write(f"  Profesionales creados/existentes: {len(profesionales)}")

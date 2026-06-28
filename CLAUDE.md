@@ -22,6 +22,11 @@ de atención primaria en Chile. Proyecto académico ICI-513, UV.
 - Paciente → OneToOne → Usuario
 - Administrador → OneToOne → Usuario
 - Reserva → FK Paciente, Profesional, Consultorio
+  - estados: pendiente, confirmada, completada, seguimiento, cancelada,
+    no_asistio, sin_gestionar
+  - Reserva.expirar_pendientes(): classmethod idempotente que marca como
+    'sin_gestionar' las 'pendiente' cuya fecha_reserva ya pasó (las
+    'confirmada' vencidas NO se tocan, las cierra el doctor)
 - Disponibilidad → FK Profesional (unique: profesional+fecha+hora_inicio)
 
 ## Roles y acceso
@@ -47,6 +52,9 @@ de atención primaria en Chile. Proyecto académico ICI-513, UV.
 - poblar_datos: seed idempotente (6 prof en Viña, 10 pac, 20 reservas)
 - crear_admin: crea/actualiza admin (idempotente, corre en cada up);
   también configura el grupo "Administradores" y se lo asigna al usuario
+- marcar_sin_gestionar: marca pendientes vencidas como 'sin_gestionar'
+  (idempotente; para correr por cron). Los paneles ya lo disparan en modo
+  lazy vía Reserva.expirar_pendientes() al cargar (home/panel_doctor/panel_admin)
 
 ## Arranque Docker
 cp .env.docker .env && docker compose up --build
@@ -75,6 +83,36 @@ docker compose exec web python manage.py poblar_datos
   mismo elemento, para evitar tooltip doble); init global en base.html
 - Coordenadas en URLs (Maps): usar |stringformat:"f" para forzar punto
   decimal (el locale es-cl renderiza coma y rompe el link)
+- Completar consulta (panel doctor): el modal Completar incluye un check
+  opcional "Agendar seguimiento" + fecha; si se marca, el JS cambia
+  nuevo_estado a 'seguimiento' (Completado → Seguimiento en un solo paso)
+- Calendario de disponibilidad: tab "Disponibilidades" del panel doctor
+  renderiza un calendario mensual vanilla JS (sin libs). Datos vía
+  disponibilidades_cal → json_script "disp-data". Estilos .cal-* en
+  principal.css. Agregar disponibilidad sigue en el tab "Gestionar"
+- Registro dinámico: el selector de tipo es un toggle de dos botones
+  (#btn-paciente / #btn-profesional) que llaman a setTipo(tipo) (función
+  JS global). setTipo alterna las clases .active-toggle/.inactive-toggle,
+  muestra/oculta #div-profesional con classList.toggle('d-none') y escribe
+  el valor en el hidden name="tipo" id="id_tipo" (los botones NO son campos,
+  el hidden es el que viaja en el POST). Profesional → especialidad
+  obligatoria (cliente: required JS; servidor: RegisterForm.clean()) +
+  cascada región→comuna→consultorio opcional (asigna Profesional.consultorio
+  en registro/views.py). tipo/especialidad/consultorio se renderizan a mano
+  en registro.html; el resto vía {% crispy form %} (TAG, no el filtro
+  |crispy) con helper.render_unmentioned_fields=False para que crispy NO
+  repinte esos 3 campos. Orden: toggle → especialidad → recinto → RUT →
+  correo → nombre → apellido → dirección → teléfono → fecha nac → claves
+- obtener_comunas / obtener_consultorios: geodata pública SIN login (la
+  usa la cascada del registro anónimo); el resto de endpoints sí exige login
+- Recuperación de contraseña: flujo estándar de django.contrib.auth
+  (incluido en urls.py vía include('django.contrib.auth.urls')). Templates
+  propios en registro/templates/registration/ (password_reset_form.html
+  —OJO: NO password_reset.html—, _done, _confirm, _complete), todos con el
+  estilo de la card de login (max-width 460px). El cuerpo del correo usa el
+  template por defecto de contrib.admin. Link "¿Olvidaste tu contraseña?"
+  en login.html. EMAIL_BACKEND = console en settings (el correo se imprime
+  en consola en desarrollo)
 - Migraciones: NO incluir desfases preexistentes (solo cambios propios)
 - El campo auth.User.username almacena el RUT normalizado
 - STATICFILES_DIRS = [BASE_DIR / "static"]
@@ -134,8 +172,10 @@ docker compose exec web python manage.py poblar_datos
 ### Stack de tests
 - pytest + pytest-django + pytest-cov (instalados en grupo dev)
 - Tests unittest legacy en cada app (tests.py): ~79 tests
-- Tests pytest nuevos en tests/: 31 tests (incluye tests/test_admin_acciones.py)
-- Total: 110 tests, 81% cobertura global
+- Tests pytest nuevos en tests/: 47 tests (incluye test_admin_acciones.py,
+  test_nuevas_features.py: seguimiento, expiración, calendario, registro;
+  y en test_registro.py: toggle setTipo + flujo de recuperación de clave)
+- Total: 126 tests
 
 ### Correr tests
 poetry run pytest -v
